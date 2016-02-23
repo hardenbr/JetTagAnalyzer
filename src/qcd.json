@@ -1,0 +1,146 @@
+{"samples": [
+{  
+          "runSample": false,
+          "label": "QCD_1000_1400mm",
+          "stack": "QCD_1000_1400",
+          "path":  "QCD_Pt_1000to1400_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 9.4183,
+          "x_limit_label": 1000,
+          "y_limit_label": 1400
+       },
+{  
+          "runSample": false,
+          "label": "QCD_1400_1800mm",
+          "stack": "QCD_1400_1800",
+          "path":  "QCD_Pt_1400to1800_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 0.84265,
+          "x_limit_label": 1400,
+          "y_limit_label": 1800
+       },
+{  
+          "runSample": false,
+          "label": "QCD_170_300mm",
+          "stack": "QCD_170_300",
+          "path":  "QCD_Pt_170to300_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 117276,
+          "x_limit_label": 170,
+          "y_limit_label": 300
+       },
+{  
+          "runSample": false,
+          "label": "QCD_1800_2400mm",
+          "stack": "QCD_1800_2400",
+          "path":  "QCD_Pt_1800to2400_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 0.114943,
+          "x_limit_label": 1800,
+          "y_limit_label": 2400
+       },
+{  
+          "runSample": false,
+          "label": "QCD_2400_3200mm",
+          "stack": "QCD_2400_3200",
+          "path":  "QCD_Pt_2400to3200_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 0.00682981,
+          "x_limit_label": 2400,
+          "y_limit_label": 3200
+       },
+{  
+          "runSample": false,
+          "label": "QCD_300_470mm",
+          "stack": "QCD_300_470",
+          "path":  "QCD_Pt_300to470_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 7823,
+          "x_limit_label": 300,
+          "y_limit_label": 470
+       },
+{  
+          "runSample": false,
+          "label": "QCD_3200_Infmm",
+          "stack": "QCD_3200_Inf",
+          "path":  "QCD_Pt_3200toInf_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 1,
+          "x_limit_label": 3200,
+          "y_limit_label": 9999
+       },
+{  
+          "runSample": true,
+          "label": "QCD_470_600mm",
+          "stack": "QCD_470_600",
+          "path":  "QCD_Pt_470to600_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 648.2,
+          "x_limit_label": 470,
+          "y_limit_label": 600
+       },
+{  
+          "runSample": false,
+          "label": "QCD_50_80mm",
+          "stack": "QCD_50_80",
+          "path":  "QCD_Pt_50to80_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 19204300.0,
+          "x_limit_label": 50,
+          "y_limit_label": 80
+       },
+{  
+          "runSample": false,
+          "label": "QCD_600_800mm",
+          "stack": "QCD_600_800",
+          "path":  "QCD_Pt_600to800_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 186.9,
+          "x_limit_label": 600,
+          "y_limit_label": 800
+       },
+{  
+          "runSample": false,
+          "label": "QCD_800_1000mm",
+          "stack": "QCD_800_1000",
+          "path":  "QCD_Pt_800to1000_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 32.293,
+          "x_limit_label": 800,
+          "y_limit_label": 1000
+       },
+{  
+          "runSample": false,
+          "label": "QCD_80_120mm",
+          "stack": "QCD_80_120",
+          "path":  "QCD_Pt_80to120_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 2762530,
+          "x_limit_label": 80,
+          "y_limit_label": 120
+       },
+{  
+          "runSample": false,
+          "label": "QCD_120_170mm",
+          "stack": "QCD_120_170",
+          "path":  "QCD_Pt_120to170_FULL.root",
+          "isMC":  true,
+          "isSig": false,
+          "xsec": 471100,
+          "x_limit_label": 120,
+          "y_limit_label": 170
+       }
+
+]}

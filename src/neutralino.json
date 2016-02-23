@@ -1,0 +1,178 @@
+{"samples": [
+{  
+          "runSample": true,
+          "label": "mfv_400_100mm",
+          "stack": "mfv_400_100",
+          "path":  "mfv_neu_tau00100um_M0400_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 400,
+          "y_limit_label": 100
+       },
+{  
+          "runSample": true,
+          "label": "mfv_800_100mm",
+          "stack": "mfv_800_100",
+          "path":  "mfv_neu_tau00100um_M0800_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 800,
+          "y_limit_label": 100
+       },
+{  
+          "runSample": true,
+          "label": "mfv_1200_100mm",
+          "stack": "mfv_1200_100",
+          "path":  "mfv_neu_tau00100um_M1200_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1200,
+          "y_limit_label": 100
+       },
+{  
+          "runSample": true,
+          "label": "mfv_1600_100mm",
+          "stack": "mfv_1600_100",
+          "path":  "mfv_neu_tau00100um_M1600_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1600,
+          "y_limit_label": 100
+       },
+{  
+          "runSample": true,
+          "label": "mfv_400_300mm",
+          "stack": "mfv_400_300",
+          "path":  "mfv_neu_tau00300um_M0400_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 400,
+          "y_limit_label": 300
+       },
+{  
+          "runSample": true,
+          "label": "mfv_800_300mm",
+          "stack": "mfv_800_300",
+          "path":  "mfv_neu_tau00300um_M0800_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 800,
+          "y_limit_label": 300
+       },
+{  
+          "runSample": true,
+          "label": "mfv_1200_300mm",
+          "stack": "mfv_1200_300",
+          "path":  "mfv_neu_tau00300um_M1200_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1200,
+          "y_limit_label": 300
+       },
+{  
+          "runSample": true,
+          "label": "mfv_1600_300mm",
+          "stack": "mfv_1600_300",
+          "path":  "mfv_neu_tau00300um_M1600_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1600,
+          "y_limit_label": 300
+       },
+{  
+          "runSample": true,
+          "label": "mfv_400_1000mm",
+          "stack": "mfv_400_1000",
+          "path":  "mfv_neu_tau01000um_M0400_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 400,
+          "y_limit_label": 1000
+       },
+{  
+          "runSample": true,
+          "label": "mfv_800_1000mm",
+          "stack": "mfv_800_1000",
+          "path":  "mfv_neu_tau01000um_M0800_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 800,
+          "y_limit_label": 1000
+       },
+{  
+          "runSample": true,
+          "label": "mfv_1200_1000mm",
+          "stack": "mfv_1200_1000",
+          "path":  "mfv_neu_tau01000um_M1200_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1200,
+          "y_limit_label": 1000
+       },
+{  
+          "runSample": true,
+          "label": "mfv_1600_1000mm",
+          "stack": "mfv_1600_1000",
+          "path":  "mfv_neu_tau01000um_M1600_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1600,
+          "y_limit_label": 1000
+       },
+{  
+          "runSample": true,
+          "label": "mfv_400_10000mm",
+          "stack": "mfv_400_10000",
+          "path":  "mfv_neu_tau10000um_M0400_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 400,
+          "y_limit_label": 10000
+       },
+{  
+          "runSample": true,
+          "label": "mfv_800_10000mm",
+          "stack": "mfv_800_10000",
+          "path":  "mfv_neu_tau10000um_M0800_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 800,
+          "y_limit_label": 10000
+       },
+{  
+          "runSample": true,
+          "label": "mfv_1200_10000mm",
+          "stack": "mfv_1200_10000",
+          "path":  "mfv_neu_tau10000um_M1200_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1200,
+          "y_limit_label": 10000
+       },
+{  
+          "runSample": true,
+          "label": "mfv_1600_10000mm",
+          "stack": "mfv_1600_10000",
+          "path":  "mfv_neu_tau10000um_M1600_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1600,
+          "y_limit_label": 10000
+       }
+]}

@@ -1,0 +1,71 @@
+{
+  // the tree to apply the selection
+  "tree" : "jets",       
+  //
+  // variables that will be included in the final trees
+  //
+  "jetVariablesToSave" : ["caloJetPt","caloJetEta", "caloJetPhi", "jetMedianIPLogSig2D", 
+  "caloJetAlphaMax", "sumTrackPt", "medianCosThetaDet2D", "jetNTracks",
+  "jetV0NJetClusterSize"],
+  "eventVariablesToSave" : ["nCaloJets",  
+  			 "passDisplaced500_40", "passDisplaced350_40", "passDisplaced400_40","passDisplaced250_40", 
+			 "passHT200", "passHT275", "passHT325", "passHT425", "passHT575"],
+  //
+  // write the selection as a single string for histogram building with tdraw 
+  //
+  "baselineJetSelectionCutString" : "(caloJetPt > 60 && abs(caloJetEta) < 2.0)",
+  "jetSelectionCutString" : "(jetMedianIPLogSig2D > 2 && caloJetAlphaMax/sumTrackPt  < 0.2 && medianCosThetaDet2D > 0.01)" ,
+  "eventSelectionCutString" : "(nCaloJets > 1)" ,
+  // 
+  // variables that will be cut on during the tagging
+  //
+  "eventSelection": [
+   {
+      "variable": "nCaloJets",
+      "isRatio": false,
+      "min": 2,
+      "max": 9999
+   }
+   ],  
+  "jetSelection": [
+   {
+      "variable": "caloJetPt",
+      "isRatio": false,
+      "min": 60,
+      "max": 99999
+   },
+   {
+      "variable": "caloJetEta",
+      "isRatio": false,
+      "min": -2,
+      "max": 2
+   },
+   {
+      "variable": "jetMedianIPLogSig2D",
+      "isRatio": false,
+      "min": 2,
+      "max": 9999
+   },
+   {
+      "isRatio": true,
+      "num": "caloJetAlphaMax",
+      "den": "sumTrackPt",
+      "min": -1,
+      "max": 0.2   
+   },
+   {
+      "variable": "medianCosThetaDet2D",
+      "isRatio": false,
+      "min": 0.01,
+      "max": 9999   
+   }
+  ],
+  // the two variables to be used to measure the fake rate and the binning for the
+  // 2D fake rate histograms
+  "fakeRateBinning": {
+     "binningVar": "caloJetEta",
+     "bins": [-2, -1.5, -1.0 , -.5, 0, 0.5, 1, 1.5, 2.0 ],
+     "categoryVar": "caloJetPt",
+     "catBins": [0]     
+   }     
+}

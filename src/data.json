@@ -1,0 +1,30 @@
+{"samples": [
+       { 
+          "runSample": true,   
+           "label": "DATA_JetHT",
+           "stack": "DATA",
+           "path":  "JetHT_FULL.root",
+           "isMC":  false,
+           "isSig": false,
+           "xsec": 1
+       },
+       { 
+          "runSample": false,   
+           "label": "DATA_DisplacedJet",
+           "stack": "DATA",
+           "path":  "DisplacedJet_FULL.root",
+           "isMC":  false,
+           "isSig": false,
+           "xsec": 1
+       },
+       { 
+          "runSample": false,   
+           "label": "SingleIsoMu_FULL",
+           "stack": "DATA",
+           "path":  "SingleIsoMu_FULL.root",
+           "isMC":  false,
+           "isSig": false,
+           "xsec": 1
+       }
+  ] }
+

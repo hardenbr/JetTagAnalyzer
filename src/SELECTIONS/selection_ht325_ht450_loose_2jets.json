@@ -1,0 +1,87 @@
+{
+  // the tree to apply the selection
+  "tree" : "jets",       
+  //
+  // variables that will be included in the final trees
+  //
+  "jetVariablesToSave" : ["caloJetPt","caloJetEta", "caloJetPhi", "jetMedianIPLogSig2D", 
+  "caloJetAlphaMax", "sumTrackPt", "medianCosThetaDet2D", "jetNTracks", "evNum", "eventCaloHT"
+  "jetV0NJetClusterSize"],
+
+  "eventVariablesToSave" : ["nCaloJets",  
+  			 "passDisplaced500_40", "passDisplaced350_40", "passDisplaced400_40","passDisplaced250_40", 
+			 "passHT200", "passHT275", "passHT325", "passHT425", "passHT575","passPFHT800"],
+  //
+  // write the selection as a single string for histogram building with tdraw 
+  //
+  "baselineJetSelectionCutString" : "(caloJetPt > 60 && abs(caloJetEta) < 2.0)",
+  "jetSelectionCutString" : "(jetMedianIPLogSig2D > 1.0 && caloJetAlphaMax/sumTrackPt  < 0.5 && medianCosThetaDet2D > 0.02)" ,
+  "eventSelectionCutString" : "(passHT325) && (nCaloJets == 2) && eventCaloHT > 450"  ,
+
+  // 
+  // variables that will be cut on during the tagging
+  //
+
+  "eventSelection": [
+   {
+      "variable": "nCaloJets",
+      "min": 2,
+      "max": 2
+   },
+   {
+      "variable": "passHT325",
+      "min": 1,
+      "max": 9999
+   },
+   {
+      "variable": "eventCaloHT",
+      "min": 450,
+      "max": 9999
+   }
+   // {
+   //     "isOR": true,
+   //     "variables": ["passDisplaced500_40","passDisplaced350_40"],
+   //     "mins": [1,   1],
+   //     "maxs": [9999,9999]
+   // }
+   ],  
+
+  "jetSelection": [
+   {
+      "variable": "caloJetPt",
+      "min": 60,
+      "max": 99999
+   },
+   {
+      "variable": "caloJetEta",
+      "min": -2,
+      "max": 2
+   },
+   {
+      "variable": "jetMedianIPLogSig2D",
+      "min": 1.0,
+      "max": 9999
+   },
+   {
+      "isRatio": true,
+      "num": "caloJetAlphaMax",
+      "den": "sumTrackPt",
+      "min": -.01,
+      "max": 0.5   
+   },
+   {
+      "variable": "medianCosThetaDet2D",
+      "min": 0.02,
+      "max": 9999   
+   }
+  ],
+
+  // the two variables to be used to measure the fake rate and the binning for the
+  // 2D fake rate histograms
+  "fakeRateBinning": {
+     "binningVar": "jetNTracks",
+     "bins": [-0.5 , 0.5 , 1.5 , 2.5 , 3.5 , 4.5 , 5.5 , 6.5 , 7.5 , 8.5 , 9.5 , 10.5 , 11.5 , 12.5 , 13.5 , 14.5 , 15.5 , 16.5 , 17.5 , 18.5 , 19.5 , 20.5 , 21.5 , 22.5 , 23.5 , 24.5 , 25.5 , 26.5 , 27.5 , 28.5 , 29.5 , 30.5 , 31.5 , 32.5 , 33.5 , 34.5 , 35.5 , 36.5 , 37.5 , 38.5 , 39.5 , 40.5 , 41.5 , 42.5 , 43.5 , 44.5 , 45.5 , 46.5 , 47.5 , 48.5 , 49.5 , 50.5 , 51.5 , 52.5 , 53.5 , 54.5 , 55.5 , 56.5 , 57.5 , 58.5 , 59.5 , 60.5 , 61.5 , 62.5 , 63.5 , 64.5 , 65.5 , 66.5 , 67.5 , 68.5 , 69.5 , 70.5 , 71.5 , 72.5 , 73.5 , 74.5 , 75.5 , 76.5 , 77.5 , 78.5 , 79.5 , 80.5 , 81.5 , 82.5 , 83.5 , 84.5 , 85.5 , 86.5 , 87.5 , 88.5 , 89.5 , 90.5 , 91.5 , 92.5 , 93.5 , 94.5 , 95.5 , 96.5 , 97.5 , 98.5 ],
+     "categoryVar": "caloJetPt",
+     "catBins": [0]     
+   }     
+}
