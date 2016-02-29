@@ -25,7 +25,8 @@ class jetSelector {
   TTree* shallowCopyTree(TTree* oldTree);
   // get a vector containing the tagging result
   std::vector<bool> getJetTaggedVector(TTree * tree, int event);
-  bool doesEventPassSelection(TTree * tree, long int event);
+  std::vector<float> getJetBinningVarVector(TTree * tree, int event);
+  bool doesEventPassSelection(TTree * tree, long int event, const int & sampleIndex);
 
   // accessors
   // -- for the fake rate histograms binning

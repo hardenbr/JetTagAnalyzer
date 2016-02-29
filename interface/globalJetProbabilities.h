@@ -19,7 +19,7 @@ class globalJetProbabilities {
 				  const double& evWeight_, 
 				  const double& xsec_, 
 				  TTree*& tree,
-				  const jetSelector& jetSel,
+				  jetSelector& jetSel,
 				  const int & debug_
 				  );
   
@@ -54,8 +54,8 @@ class globalJetProbabilities {
   double getJetFakeProbability(float binVariable, float catVar);
   std::pair<double, double> getJetFakeProbabilityError(float binVariable, float catVar);
   void printHistStatus();
-  void addSignalContamination(TTree*& tree, const jetSelector & jetSel, float norm);
-
+  void addSignalContamination(TTree*& tree, jetSelector & jetSel, float norm);
+  void removeSignalRegion(TTree*& tree, jetSelector & jetSel, bool isContam, float norm);
 
   Json::Value getProbabilitiesJSON();
 
@@ -80,9 +80,6 @@ class globalJetProbabilities {
   TH1D              ratioHistEffErrUp;
   TH1D              ratioHistEffErrDn;
 
-  // jetSelector
-
-
   std::vector<double>   histBinVals;
   std::vector<double>   catBinVals;
 
@@ -96,6 +93,13 @@ class globalJetProbabilities {
   std::string	eventCutString;
   std::string	baselineJetCutString;
   std::string	triggerCutOnlyString;
+
+  // names for the histograms
+  std::string	taggedJetHistName;
+  std::string	allJetHistName;
+  std::string	effHistName;
+  std::string	effHistNameUp;
+  std::string	effHistNameDn;
 
   // configuration params
   const bool isMC, isSig;

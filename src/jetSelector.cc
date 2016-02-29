@@ -78,7 +78,7 @@ jetSelector::jetSelector(const Json::Value & selectorJSON,
 
 }
 
-bool  jetSelector::doesEventPassSelection(TTree * tree, long int event) { 
+bool  jetSelector::doesEventPassSelection(TTree * tree, long int event, const int & sampleIndex) { 
 
  if(debug > 5) std::cout << "[jetSelector]  getting tree event for event selection " << std::endl; 
  tree->GetEntry(event);
@@ -88,10 +88,10 @@ bool  jetSelector::doesEventPassSelection(TTree * tree, long int event) {
 
  bool passValidationIndex  = (evNum % nDivisions) == valiIndex;
 
- if(!passValidationIndex && runChop) return false;
+ if(!passValidationIndex && runChop && nDivisions > 2) return false;
 
- if(debug > 2) std::cout << "[jetSelector]  is Event EVEN?  " << isEven << " evNum " << evNum << std::endl; 
- if(debug > 2) std::cout << "[jetSelector]  starting event variable loop with event  " << event << std::endl; 
+ if(debug > 6) std::cout << "[jetSelector]  is Event EVEN?  " << isEven << " evNum " << evNum << std::endl; 
+ if(debug > 6) std::cout << "[jetSelector]  starting event variable loop with event  " << event << std::endl; 
  // check the trigger thresholds first
  // for(int ii = 0; ii < triggerThresholds.size(); ++ii) {
  //   std::string triggerName = triggerThresholds[ii].asString();
@@ -155,13 +155,11 @@ bool  jetSelector::doesEventPassSelection(TTree * tree, long int event) {
      TLeaf *	    varLeaf = tree->GetLeaf(var.c_str());
      float	    val	    = varLeaf->GetValue(0);   
  
-
-
      // min and max values for the variable
      const float    min	    = eventSelection[ii].get("min","ERROR").asFloat();
      const float    max	    = eventSelection[ii].get("max","ERROR").asFloat();
      
-     if(debug > 1) std::cout << "[jetSelector] Checking EVENT variable: " << var << " min " << 
+     if(debug > 6) std::cout << "[jetSelector] Checking EVENT variable: " << var << " min " << 
 		   min << " max " << max << " val " << val << std::endl;  
      
      bool fail = val < min || val > max;
@@ -177,6 +175,22 @@ bool  jetSelector::doesEventPassSelection(TTree * tree, long int event) {
  return true;
 }
 
+std::vector<float> jetSelector::getJetBinningVarVector(TTree * tree, int event) {
+  std::vector<float> binningVarVec; 
+  tree->GetEntry(event);
+  TLeaf *   nJetLeaf = tree->GetLeaf("nCaloJets");
+  int	    nJets    = nJetLeaf->GetValue(0);
+
+  for(int jet = 0; jet < nJets; ++jet) {
+    if(debug > 6) std::cout << "[jetSelector ] New Jet " << jet << "...egin looping selection variables" << std::endl;  
+    
+    TLeaf * binningVarLeaf = tree->GetLeaf(binningVar.c_str());
+    float binningVarVal = binningVarLeaf->GetValue(jet);
+    binningVarVec.push_back(binningVarVal);    
+  } // loop over the number of jets
+
+  return binningVarVec;
+}
 
 // given a tree and event produce a vector of whether the jet was tagged or not
 std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event) {
@@ -184,14 +198,14 @@ std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event) {
   std::vector<bool> isTaggedVec; 
   tree->GetEntry(event);
 
-  if(debug > 1) std::cout << "[jetSelector ] Getting N Jets from nCaloJets" << std::endl;  
+  if(debug > 6) std::cout << "[jetSelector ] Getting N Jets from nCaloJets" << std::endl;  
   // determine the number of jets in the event to iterate
   TLeaf *   nJetLeaf = tree->GetLeaf("nCaloJets");
   int	    nJets    = nJetLeaf->GetValue(0);
 
-  if(debug > 1) std::cout << "[jetSelector ] Begin looping event jets" << std::endl;  
+  if(debug > 6) std::cout << "[jetSelector ] Begin looping event jets" << std::endl;  
   for(int jet = 0; jet < nJets; ++jet) {
-    if(debug > 1) std::cout << "[jetSelector ] New Jet " << jet << "...egin looping selection variables" << std::endl;  
+    if(debug > 6) std::cout << "[jetSelector ] New Jet " << jet << "...egin looping selection variables" << std::endl;  
     for(int ii = 0; ii < jetSelection.size(); ++ii) {
 
       bool  isRatio = jetSelection[ii].get("isRatio",false).asBool();
@@ -202,7 +216,7 @@ std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event) {
 	// parse the numerator and denominator for the ratio
 	std::string num	    = jetSelection[ii].get("num","ERROR").asString();
 	std::string den	    = jetSelection[ii].get("den","ERROR").asString();
-	if(debug > 2) std::cout << "[jetSelector ] Variable is ratio: " << num << "/" << den << std::endl;  
+	if(debug > 6) std::cout << "[jetSelector ] Variable is ratio: " << num << "/" << den << std::endl;  
 
 	TLeaf *     numLeaf = tree->GetLeaf(num.c_str());
 	TLeaf *     denLeaf = tree->GetLeaf(den.c_str());
@@ -221,25 +235,25 @@ std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event) {
       }
       else {
 	std::string var	    = jetSelection[ii].get("variable","ERROR").asString();
-	if(debug > 2) std::cout << "[jetSelector] Variable is not ratio: " << var << std::endl;  
+	if(debug > 6) std::cout << "[jetSelector] Variable is not ratio: " << var << std::endl;  
 	TLeaf *	    varLeaf = tree->GetLeaf(var.c_str());
 	int	    nJets   = varLeaf->GetNdata();
 	
 	val = varLeaf->GetValue(jet);
       } // end is  not ratio
-      if(debug > 2) std::cout << "[jetSelector ] check if variable falls within min and max  " << std::endl;        
+      if(debug > 6) std::cout << "[jetSelector ] check if variable falls within min and max  " << std::endl;        
 
       // min and max values for the variable
       const float   min		   = jetSelection[ii].get("min","ERROR").asFloat();
       const float   max		   = jetSelection[ii].get("max","ERROR").asFloat();
 
-      if(debug > 2) std::cout << "[jetSelector ] min  " << min << " max " << max << " val " <<val << std::endl;        
+      if(debug > 6) std::cout << "[jetSelector ] min  " << min << " max " << max << " val " <<val << std::endl;        
       const bool    isLastVariable = (ii == (jetSelection.size() - 1));      
       const bool    passCut	   = (val >= min) && (val <= max);
 
       // if it fails a cut, 
       if(!passCut) {
-	if(debug > 2) std::cout << "[jetSelector ] Jet Fail #  " << jet <<  std::endl;        
+	if(debug > 6) std::cout << "[jetSelector ] Jet Fail #  " << jet <<  std::endl;        
 	isTaggedVec.push_back(false);
 	break;
       }
@@ -248,17 +262,19 @@ std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event) {
 
       // we are at the last cut and all have passed      
       if(isLastVariable && passCut) { 
-	if(debug > 2) std::cout << "[jetSelector ] Last Variable -- Jet pass #  " << jet <<  std::endl;        
+	if(debug > 6) std::cout << "[jetSelector ] Last Variable -- Jet pass #  " << jet <<  std::endl;        
 	isTaggedVec.push_back(true);	 	
 	break;
       }
     } // end loop over jet variables
-    if(debug > 2) std::cout << "[jetSelector ] Variable Loop Complete...  " << std::endl;        
+    if(debug > 6) std::cout << "[jetSelector ] Variable Loop Complete...  " << std::endl;        
   } // end loop over jets
-  if(debug > 2) std::cout << "[jetSelector ] Jet Loop Complete...  " << std::endl;        
+  if(debug > 6) std::cout << "[jetSelector ] Jet Loop Complete...  " << std::endl;        
 
   return isTaggedVec;
 } // end getJetTaggedVector
+
+
 
  
  

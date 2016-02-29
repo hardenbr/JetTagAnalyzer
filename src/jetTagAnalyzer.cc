@@ -1,3 +1,5 @@
+
+
 //#include "jetTagAnalyzer.h"
 #include "json/json.h"
 #include "json/json-forwards.h"
@@ -139,18 +141,19 @@ int main(int argc, char* argv[]) {
 
   // read parameters from the run config
   if(debug > -1) std::cout << "Building Output File..." << std::endl;
-  std::string	outputFileName	 = run_config_root.get("outputFileName","test").asString();
-  std::string	pileupFileName	 = run_config_root.get("puProfile","").asString();
-  std::string	mcPileupFileName = run_config_root.get("mcPuProfile","").asString();
-  bool	        applyPuWeight     = run_config_root.get("applyPUWeight",false).asBool();
-  std::string	outputDir	 = run_config_root.get("outputDir","/tmp/hardenbr/").asString();
-  debug				 = run_config_root.get("debug",0).asInt();
-  long int	maxEvents	 = run_config_root.get("maxEvents",-1).asInt();
+  std::string	outputFileName		    = run_config_root.get("outputFileName","test").asString();
+  std::string	pileupFileName		    = run_config_root.get("puProfile","").asString();
+  std::string	mcPileupFileName	    = run_config_root.get("mcPuProfile","").asString();
+  bool	        applyPuWeight		    = run_config_root.get("applyPUWeight",false).asBool();
+  std::string	outputDir		    = run_config_root.get("outputDir","/tmp/hardenbr/").asString();
+  debug					    = run_config_root.get("debug",0).asInt();
+  long int	maxEvents		    = run_config_root.get("maxEvents",-1).asInt();
   //limit on the number of ntags to compute
-  int		maxJetTags	 = run_config_root.get("maxJetTags",3).asInt(); 
-  bool		runSignalContam  = run_config_root["signalContam"].get("run",false).asBool(); 
-  bool		writeTree        = run_config_root.get("writeTree",false).asBool(); 
-  bool		onlyProbs        = run_config_root.get("onlyProbs",false).asBool(); 
+  int		maxJetTags		    = run_config_root.get("maxJetTags",3).asInt(); 
+  bool		runSignalContam		    = run_config_root["signalContam"].get("run",false).asBool(); 
+  bool		writeTree		    = run_config_root.get("writeTree",false).asBool(); 
+  bool		onlyProbs		    = run_config_root.get("onlyProbs",false).asBool(); 
+  bool		removeSignalRegionFromProbs = run_config_root.get("removeSignalRegionFromProbs",false).asBool(); 
 
   std::string	hypotheticalChopProb = outputDir+"/"+"prob" + runChopProbSuffix + ".json";
   if(runChop) {
@@ -210,7 +213,7 @@ int main(int argc, char* argv[]) {
     std::cout << "[MC PU PROFILE] " << std::endl;
     mcPileupHist.Print();
 
-    pileupWeightHist = *(TH1D*)pileupHist.Clone();
+    pileupWeightHist = *(TH1D*)pileupHist.Clone("weights");
 
     TH1F clone("pileup_Rebin","pileup_rebin",50,0,50);
     //    clone.Add(&mcPileupHist);
@@ -262,12 +265,12 @@ int main(int argc, char* argv[]) {
     std::string nTagHistPredName = label + "_nTagPred";
 
     // initialize histograms
-    TH1D nTagHistTrue(nTagHistTrueName.c_str(), "N Tags Obs.", maxJetTags, 1, maxJetTags+1);
-    TH1D nTagHistPred(nTagHistPredName.c_str(), "N Tags Exp.", maxJetTags, 1, maxJetTags+1);
+    TH1D nTagHistTrue(nTagHistTrueName.c_str(), "N Tags Obs.", maxJetTags, 1-.5, maxJetTags+1-.5);
+    TH1D nTagHistPred(nTagHistPredName.c_str(), "N Tags Exp.", maxJetTags, 1-.5, maxJetTags+1-.5);
     TH1D nTagHistPredErrUp((nTagHistPredName+"ErrUp").c_str(), 
-			   "Fake Rate Stat.", maxJetTags, 1, maxJetTags+1);
+			   "Fake Rate Stat.", maxJetTags, 1-.5, maxJetTags+1-.5);
     TH1D nTagHistPredErrDn((nTagHistPredName+"ErrDn").c_str(), 
-			   "Fake Rate Stat.", maxJetTags, 1, maxJetTags+1);
+			   "Fake Rate Stat.", maxJetTags, 1-.5, maxJetTags+1-.5);
     
     if(debug > -1) {
       std::cout << "label: " << label << std::endl;
@@ -318,6 +321,9 @@ int main(int argc, char* argv[]) {
       // process the sample by constructing the global probabilities
       globalJetProbabilities * localSampleProb = new globalJetProbabilities(label, stack, isMC, isSig, eventWeight, xsec, tree, jetSel, debug);     
 
+      // subtract the signal region
+      if(removeSignalRegionFromProbs) localSampleProb->removeSignalRegion(tree, jetSel, false, 1);
+      
       if(runSignalContam) {
 
 	// parse the parameters
@@ -340,18 +346,22 @@ int main(int argc, char* argv[]) {
 	  TFile   contamFile(contamPath.c_str(), "READ");
 	  TTree * contamTree = (TTree*)contamFile.Get(treeName.c_str());
 	  
-	  std::cout << "Adding signal contamination from path: " << path.c_str() << std::endl;
+	  std::cout << "\n\n Adding signal contamination to probabilities from path: " << path.c_str() << std::endl;
 	  // add the signal contamination to the local probabilities
-	  localSampleProb->addSignalContamination(contamTree, jetSel, norm);
-	  
+	  localSampleProb->addSignalContamination(contamTree, jetSel, norm);	  
+
+	  // and then remove the piece contained in the signal region
+	  if(removeSignalRegionFromProbs) localSampleProb->removeSignalRegion(contamTree, jetSel, true, norm);
 	} // end loop over signal samples for contamination	
 	
 	// make sure we found
 	if(!foundContam) {
 	  std::cout << "[ERROR] did not find sample for signal contamaination....exiting" << std::endl;
 	  exit(1);
-	}
+	}	
+	
       } // end additional signal contamination
+      
 
 
       // parse the json assembled
@@ -455,8 +465,8 @@ int main(int argc, char* argv[]) {
     double probNTagsErrDn[11] = {0,0,0,0,0,0,0,0,0,0};
     int   nJetTagArray[11]    = {0,1,2,3,4,5,6,7,8,9,10};
     // jet indexed
-    double probJTag[50];
-    int   isTagged[50];
+    double probJTag[100];
+    int   isTagged[100];
     // event indexed / flat number
     int		nTagged		= 0;
     long int	evNum		= 0;
@@ -507,14 +517,29 @@ int main(int argc, char* argv[]) {
 
     if(maxEvents > 0 && maxEvents < nEvents  ) nEvents = maxEvents;
     if(onlyProbs) nEvents = 0;
-
     for(long int event = 0; event < nEvents; ++event) {
-      if(debug > 2) std::cout << "Checking event selection... "  <<  std::endl;
       tree->GetEntry(event);
-      bool eventPassSelection = jetSel.doesEventPassSelection(tree, event);
 
-      if(eventPassSelection) nPassEventSelection++;
-	
+      // Calculate the number of tagged jets
+      if(debug > 2) std::cout << "Getting the nTagged Jets Vector.." << std::endl;
+      std::vector<bool> taggedVector = jetSel.getJetTaggedVector(tree, event);      
+      nTagged = 0; // the total number of jets tagged per event      
+      if(debug > 2) std::cout << "Filling output Tree Branch.. with tagvector size:" << taggedVector.size() << std::endl;
+      if(debug > 5) std::cout << "[jetTagAnalyzer] vector of tags";
+      for(int jj = 0; jj < taggedVector.size(); ++jj) {
+	if(debug > 5) std::cout << taggedVector[jj];	
+	// check for each vector being tagged
+	if(taggedVector[jj]) nTagged++; 
+	isTagged[jj] = taggedVector[jj] ? 1 : 0;
+      }
+      
+      // check the index matches for the validation sample and that the kinematic / trigger requirements are satisfied
+      bool eventPassSelection = jetSel.doesEventPassSelection(tree, event, valiIndex);
+      // if we are not running multiple chops we keep all events in the validation sample
+      // with 2 or more tags
+      eventPassSelection = (eventPassSelection || nTagged >= 2) && nDivisions <= 2; 
+      
+      if(eventPassSelection) nPassEventSelection++;	
 
       if(debug > 2) std::cout << "Event passes event selection?? "  << eventPassSelection << std::endl;
 
@@ -548,19 +573,22 @@ int main(int argc, char* argv[]) {
 	float	truePU	  = genPULeaf->GetValue(0);           
 	puWeight	  = pileupWeightHist.GetBinContent(pileupWeightHist.GetBin(truePU));
 	if(applyPuWeight) totalWeight *= puWeight;
-	if(debug > -1) std::cout << "Found PU weight..." << puWeight << std::endl;
+	if(debug > 0) std::cout << "Found PU weight..." << puWeight << std::endl;
       }
       
       // get the probability vector for n tagged scenarios
+      // n jet tag probabilities
       std::vector<double>    nTagProbVector		    = 
 	masterJetCalc.getNJetTaggedVector(event, maxJetTags);
+      // single jet probabilities
       std::vector<double>    jetProbabilityVector	    = 
 	masterJetCalc.getJetProbabilityVector(event);
+      // errors +/-
       std::vector<std::pair<double,double>> nTagProbErrVector = 
 	masterJetCalc.getNJetErrorVector(event, maxJetTags);
 
       if(debug > 2) std::cout << "Getting Vector Size for event: "  << event << std::endl;
-      int nJets = jetVariableTree->GetLeaf("nCaloJets")->GetValue(0);//nTagProbVector.size();
+      int nJets = tree->GetLeaf("nCaloJets")->GetValue(0);//nTagProbVector.size();
 
       // fill the array with zeros
       for(int jj = 0; jj <= maxJetTags; ++jj) probNTags[jj] = 0;
@@ -571,14 +599,6 @@ int main(int argc, char* argv[]) {
 	double	prob   = nTagProbVector[jj];
 	double	probUp = nTagProbErrVector[jj].first;
 	double	probDn = nTagProbErrVector[jj].second;
-
-	// // fill the arrays given the probabilities make sense
-	// if(prob == 1 && jj != 0) { 
-	//   std::cout << "[ERROR] probability is 1?....Exiting....event: " << event << std::endl;
-	//   std::cout << "[ERROR] nJets: " << nJets << " checking for jet jj = " << jj  << std::endl;
-	//   std::cout << "[ERROR] probUp: " << probUp << "  probdown: " << probDn  << std::endl;
-	//   exit(1);
-	// }
 
 	probNTags[jj]	   = (prob >= 0 && prob <= 1) ? prob * totalWeight : 0;
 	probNTagsErrUp[jj] = (probUp >= 0 && probUp <= 1) ? probUp * totalWeight : 0;
@@ -606,12 +626,13 @@ int main(int argc, char* argv[]) {
 
 	// fill histograms
 	if(eventPassSelection) {
+	  if(debug > 2) std::cout << "Event passes selectio nso Fill histograms with probabilities " << std::endl;
 	  nTagHistPred.Fill(jj, probNTags[jj]);
 	  nTagHistPredErrUp.Fill(jj, weightErrUp);
 	  nTagHistPredErrDn.Fill(jj, weightErrDn);
 	}
 	
-	if(debug > 6) { 
+	if(debug > 3) { 
 	  std::cout << " histogram status " << std::endl;
 	  nTagHistPred.Print();	
 	  std::cout << "\tintegral =  " << nTagHistPred.Integral() << std::endl;
@@ -620,28 +641,19 @@ int main(int argc, char* argv[]) {
 	  nTagHistPredErrDn.Print();
 	  std::cout << "\tintegral =  " << nTagHistPredErrDn.Integral() << std::endl;
 	}
-      }      
-      
-      // get the per jet tagged vector
-      if(debug > 2) std::cout << "Getting the nTagged Jets Vector.." << std::endl;
-      std::vector<bool> taggedVector = jetSel.getJetTaggedVector(tree, event);      
-      nTagged = 0; // the total number of jets tagged per event      
-      if(debug > 2) std::cout << "Filling output Tree Branch.. with tagvector size:" << taggedVector.size() << std::endl;
-      if(debug > 5) std::cout << "[jetTagAnalyzer] vector of tags";
-      for(int jj = 0; jj < taggedVector.size(); ++jj) {
-	if(debug > 5) std::cout << taggedVector[jj];	
-	// check for each vector being tagged
-	if(taggedVector[jj]) {
-	  nTagged++;
-	  isTagged[jj] = 1;
+
+	if(debug > 5) {
+	  std::cout << "probJTag[jj]: " << probJTag[jj] << std::endl;
+	  std::cout << "jetProbabilityVector[jj]: " << jetProbabilityVector[jj] << std::endl;
 	}
-	else {
-	  isTagged[jj] = 0;
-	}
-	if(debug > 5) std::cout << std::endl;
+	
 	// get the jet probability
-	probJTag[jj] = jetProbabilityVector[jj];
+	if(nJets > 0){
+	  probJTag[jj] = jetProbabilityVector[jj];
+	}
+	if(debug > 3) 	  std::cout << "------Jet loop interation complete---- " << std::endl;
       }
+
       // set the weight vector to the number of true tags 
       nTagWeight[nTagged] = 1;
       // fill the histogram
@@ -692,7 +704,7 @@ int main(int argc, char* argv[]) {
 	if(debug > 2) std::cout << "[contamination] Checking event selection... "  <<  std::endl;	
 
 	// make sure the vent passes the even tpreseleciton
-	bool eventPassSelection = jetSel.doesEventPassSelection(contamTree, event);
+	bool eventPassSelection = jetSel.doesEventPassSelection(contamTree, event, valiIndex);
 	if(!eventPassSelection) continue;
 	
 	// get the probabilities of n-tags for the signal

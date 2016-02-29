@@ -5,7 +5,7 @@
   // variables that will be included in the final trees
   //
   "jetVariablesToSave" : ["caloJetPt","caloJetEta", "caloJetPhi", "jetMedianIPLogSig2D", 
-  "caloJetAlphaMax", "sumTrackPt", "medianCosThetaDet2D", "jetNTracks",
+  "caloJetAlphaMax", "sumTrackPt", "medianCosThetaDet2D", "jetNTracks", "evNum", "genPU",
   "jetV0NJetClusterSize","eventCaloHT"],
 
   "eventVariablesToSave" : ["nCaloJets",  

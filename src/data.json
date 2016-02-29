@@ -1,6 +1,6 @@
 {"samples": [
        { 
-          "runSample": true,   
+          "runSample": false,   
            "label": "DATA_JetHT",
            "stack": "DATA",
            "path":  "JetHT_FULL.root",
@@ -9,7 +9,7 @@
            "xsec": 1
        },
        { 
-          "runSample": false,   
+          "runSample": true,   
            "label": "DATA_DisplacedJet",
            "stack": "DATA",
            "path":  "DisplacedJet_FULL.root",
