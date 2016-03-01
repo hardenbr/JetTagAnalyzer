@@ -166,8 +166,11 @@ std::vector<double> jetProbabilityMasterComputer::getNJetTaggedVector(long int e
 std::pair<double, double> jetProbabilityMasterComputer::getNJetProbabilityError(double * const binValues, 
 									      double * const catValues, 
 									      int nJetsTagged, int nJets) {
-  double total_error_up	 = 0;	// sum of all dp_djet terms with error fluctation up
-  double total_error_dn   = 0;	// sum of all dp_djet terms with error fluctation down
+  if(debug > 4) std::cout << "\n\n------\n[jetProbabilityMasterComputer] Computing Probability Error for nTaggedJets " << 
+		  nJetsTagged << " and N jets " << nJets << std::endl;
+
+  double    total_error_up = 0;	// sum of all dp_djet terms with error fluctation up
+  double    total_error_dn = 0;	// sum of all dp_djet terms with error fluctation down
 
   int nConfig = pow2[nJets] - 1;
 
@@ -177,9 +180,9 @@ std::pair<double, double> jetProbabilityMasterComputer::getNJetProbabilityError(
     double dp_djet_term_dn = 0;  // term corresponding to varying the probability for a given jet
 
     // get the errors for the jet in question
-    std::pair<double, double> jetProbErrors = jetProb->getJetFakeProbabilityError(binValues[jet], catValues[jet]);
-    double		    jetErrUp	  = jetProbErrors.first;
-    double		    jetErrDn	  = jetProbErrors.second;
+    std::pair<double, double>	jetProbErrors = jetProb->getJetFakeProbabilityError(binValues[jet], catValues[jet]);
+    double			jetErrUp      = jetProbErrors.first;
+    double			jetErrDn      = jetProbErrors.second;
 
     // calculate each sub-term in the probability (1 for each configuration)
     for(long int ii = 0; ii <= nConfig; ++ii) {
@@ -189,28 +192,47 @@ std::pair<double, double> jetProbabilityMasterComputer::getNJetProbabilityError(
       double subTerm = 1;
       // check each bit in the 
       for(int subjet = 0; subjet < nJets; ++subjet) {
-	bool isTagged = (nConfig & pow2[subjet]) > 0;
+	bool isTagged = (ii & pow2[subjet]) > 0;
+	if(debug > 5) std::cout << "[jetProbabilityMasterComputer] isTagged =" << isTagged << std::endl;
 	// check the sign of the term which is determined by whether the jet is tagged or not 
 	if(subjet == jet) {
-	  subTerm *= isTagged ? 1 : -1;	  
+	  double factor =  isTagged ? 1 : -1;
+	  if(debug > 5) std::cout << "[jetProbabilityMasterComputer] subterm factor =" << factor << std::endl;
+	  subTerm *= factor;	  
 	}
 	else { // otherwise multiply by the correct factor
-	  double p_jet = jetProb->getJetFakeProbability(binValues[subjet], catValues[subjet]);
-	  subTerm *= isTagged ? p_jet : (1 - p_jet);
+	  double    p_jet  = jetProb->getJetFakeProbability(binValues[subjet], catValues[subjet]);
+	  double    factor = isTagged ? p_jet : (1 - p_jet);
+	  if(debug > 5) std::cout << "[jetProbabilityMasterComputer] subterm factor =" << factor << std::endl;
+	  subTerm *= factor;
 	}	
+	if(debug > 5) std::cout << "[jetProbabilityMasterComputer] dP_dj subterm index=" << subjet << "progressive subTerm Val=" << subTerm << std::endl;	
+	
       } // end loop over subjets in the given configuration
       // add the subterm to the total term in quadrature
       dp_djet_term_up += subTerm;
       dp_djet_term_dn += subTerm;
+
+      if(debug > 5) std::cout << "[jetProbabilityMasterComputer] dp_djet_term_up val=" << dp_djet_term_up << std::endl;
+      if(debug > 5) std::cout << "[jetProbabilityMasterComputer] dp_djet_term_dn val=" << dp_djet_term_dn << std::endl;
     } // end loop over all configurations
     
     total_error_up += dp_djet_term_up * dp_djet_term_up * jetErrUp * jetErrUp;
     total_error_dn += dp_djet_term_dn * dp_djet_term_dn * jetErrDn * jetErrDn;    
+
+    if(debug > 5) std::cout << "[jetProbabilityMasterComputer] dp_djet_term=" << jet   <<  " jetErrUp=" << jetErrUp << std::endl;
+    if(debug > 5) std::cout << "[jetProbabilityMasterComputer] dp_djet_term=" << jet   <<  " jetErrDn=" << jetErrDn << std::endl;
+
+
   } // end loop over the p_i in dP/dp_i  
   
   // apply a sqrt to the total
   total_error_up = std::sqrt(total_error_up);
   total_error_dn = std::sqrt(total_error_dn);
+
+  if(debug > 5) std::cout << "\n\n[jetProbabilityMasterComputer] total_error_up=" << total_error_up << std::endl;
+  if(debug > 5) std::cout << "[jetProbabilityMasterComputer] total_error_dn=" << total_error_dn << std::endl;
+
 
   std::pair<double, double> error_pair(total_error_up, total_error_dn);
 

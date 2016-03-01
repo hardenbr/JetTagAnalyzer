@@ -78,7 +78,7 @@ jetSelector::jetSelector(const Json::Value & selectorJSON,
 
 }
 
-bool  jetSelector::doesEventPassSelection(TTree * tree, long int event, const int & sampleIndex) { 
+bool  jetSelector::doesEventPassSelection(TTree * tree, long int event) { 
 
  if(debug > 5) std::cout << "[jetSelector]  getting tree event for event selection " << std::endl; 
  tree->GetEntry(event);
@@ -86,9 +86,8 @@ bool  jetSelector::doesEventPassSelection(TTree * tree, long int event, const in
  int	evNum	  = tree->GetLeaf("evNum")->GetValue(0);
  bool	isEven	  = (evNum % 2 == 0);
 
- bool passValidationIndex  = (evNum % nDivisions) == valiIndex;
-
- if(!passValidationIndex && runChop && nDivisions > 2) return false;
+ // bool passValidationIndex  = (evNum % nDivisions) == valiIndex;
+ // if(!passValidationIndex && runChop && nDivisions > 2) return false;
 
  if(debug > 6) std::cout << "[jetSelector]  is Event EVEN?  " << isEven << " evNum " << evNum << std::endl; 
  if(debug > 6) std::cout << "[jetSelector]  starting event variable loop with event  " << event << std::endl; 

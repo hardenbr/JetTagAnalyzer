@@ -25,5 +25,5 @@ for ii in range(nDiv):
                 print "RUNNING IT.....", runString                
                 os.system(runString)
                 print "SLEEPING 30 Seconds....."
-                time.sleep(45)
+                time.sleep(1)
             

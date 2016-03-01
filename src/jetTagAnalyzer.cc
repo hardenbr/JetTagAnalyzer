@@ -147,7 +147,8 @@ int main(int argc, char* argv[]) {
   bool	        applyPuWeight		    = run_config_root.get("applyPUWeight",false).asBool();
   std::string	outputDir		    = run_config_root.get("outputDir","/tmp/hardenbr/").asString();
   debug					    = run_config_root.get("debug",0).asInt();
-  long int	maxEvents		    = run_config_root.get("maxEvents",-1).asInt();
+  long int	beginEvent		    = run_config_root.get("beginEvent",0).asInt();
+  long int	endEvent		    = run_config_root.get("endEvent",-1).asInt();
   //limit on the number of ntags to compute
   int		maxJetTags		    = run_config_root.get("maxJetTags",3).asInt(); 
   bool		runSignalContam		    = run_config_root["signalContam"].get("run",false).asBool(); 
@@ -346,11 +347,12 @@ int main(int argc, char* argv[]) {
 	  TFile   contamFile(contamPath.c_str(), "READ");
 	  TTree * contamTree = (TTree*)contamFile.Get(treeName.c_str());
 	  
-	  std::cout << "\n\n Adding signal contamination to probabilities from path: " << path.c_str() << std::endl;
+	  std::cout << "\n\n Adding signal contamination to probabilities from path: " << contamPath.c_str() << std::endl;
 	  // add the signal contamination to the local probabilities
 	  localSampleProb->addSignalContamination(contamTree, jetSel, norm);	  
 
 	  // and then remove the piece contained in the signal region
+	  std::cout << "\n\n removing signal region from probabilities " << std::endl;
 	  if(removeSignalRegionFromProbs) localSampleProb->removeSignalRegion(contamTree, jetSel, true, norm);
 	} // end loop over signal samples for contamination	
 	
@@ -362,9 +364,8 @@ int main(int argc, char* argv[]) {
 	
       } // end additional signal contamination
       
-
-
       // parse the json assembled
+      std::cout << "\n\n getting sample json to output probabilities" << std::endl;
       Json::Value  sampleJson = localSampleProb->getProbabilitiesJSON();
 
       // write the json to the stream in the output directory
@@ -378,6 +379,7 @@ int main(int argc, char* argv[]) {
       }
       jsonOutputName += ".json";
 
+      std::cout << "\n\n Writing JSON output probabilities to file: " << jsonOutputName << std::endl;
       std::ofstream json_stream;
       json_stream.open(jsonOutputName);      
       // use the style writter
@@ -450,8 +452,12 @@ int main(int argc, char* argv[]) {
 
     if(debug > -1) std::cout << "------ BEGINNING STEP TWO ----- " << std::endl;
     // make one file per sample for the individual tree
-    if(debug > -1) std::cout << " Building sample output file  " << std::endl;
-    TFile sampleOutputFile((outputDir+"/"+"tree_"+label+".root").c_str(), "RECREATE");    
+
+    std::string outputFileName = outputDir + "/tree_" + label;
+    if(runChop) outputFileName += "_" + runChopSuffix;
+    outputFileName += ".root";
+    if(debug > -1) std::cout << " Building sample output file:  " << outputFileName << std::endl;
+    TFile sampleOutputFile(outputFileName.c_str(), "RECREATE");    
 
     // create the tree that will contain the variables from
     // a shallow copy of the original tree
@@ -515,9 +521,14 @@ int main(int argc, char* argv[]) {
     jetVariableTree->Branch("eventsPassingSel", &nPassEventSelection, "eventsPassingSel/I");      
     jetVariableTree->Branch("eventsPassingTrigger", &nPassTriggerSelection, "eventsPassingTrigger/I");      
 
-    if(maxEvents > 0 && maxEvents < nEvents  ) nEvents = maxEvents;
+    if(endEvent > 0 && endEvent+1 < nEvents) nEvents = endEvent+1;
     if(onlyProbs) nEvents = 0;
+    if(debug > 5) std::cout << "Pre-Event Loop beginEvent: " << beginEvent << " endEvent " << endEvent << std::endl;
+
     for(long int event = 0; event < nEvents; ++event) {
+      // start at the first event designated
+      if(debug > 5) std::cout << "begin event loop -- event #" << event << " " << std::endl;
+      if(event < beginEvent) continue; 
       tree->GetEntry(event);
 
       // Calculate the number of tagged jets
@@ -534,11 +545,15 @@ int main(int argc, char* argv[]) {
       }
       
       // check the index matches for the validation sample and that the kinematic / trigger requirements are satisfied
-      bool eventPassSelection = jetSel.doesEventPassSelection(tree, event, valiIndex);
-      // if we are not running multiple chops we keep all events in the validation sample
-      // with 2 or more tags
-      eventPassSelection = (eventPassSelection || nTagged >= 2) && nDivisions <= 2; 
-      
+      bool  passValidationIndex		= (int(event) % nDivisions == valiIndex); // is the correct validation sample
+      // is in the signal region for <= 2 divisions
+      bool  passSignalTagRegion		= (nTagged >= 2 && nDivisions <= 2);  
+      // passes the trigger and kinematic requirements
+      bool  eventPassKinematicSelection = jetSel.doesEventPassSelection(tree, event);
+      // two ways to get into the validation sample (signal region or correct validation index)
+      bool  eventPassSelection		= eventPassKinematicSelection && (passValidationIndex || passSignalTagRegion); 
+ 
+      // when we use 1 or 2 divisions, keep the full signal region       
       if(eventPassSelection) nPassEventSelection++;	
 
       if(debug > 2) std::cout << "Event passes event selection?? "  << eventPassSelection << std::endl;
@@ -604,6 +619,9 @@ int main(int argc, char* argv[]) {
 	probNTagsErrUp[jj] = (probUp >= 0 && probUp <= 1) ? probUp * totalWeight : 0;
 	probNTagsErrDn[jj] = (probDn >= 0 && probDn <= 1) ? probDn * totalWeight : 0;	
 
+	if(debug> 5 && jj < 3)  std::cout << "probTagsErrUp[jj] jj=" << jj << " probUp=" << probUp << std::endl;
+	if(debug> 5 && jj < 3)  std::cout << "probTagsErrDn[jj] jj=" << jj << " probUp=" << probUp << std::endl;
+	   
 	double weightErrUp = (probNTags[jj] + probNTagsErrUp[jj]);
 	double weightErrDn = probNTags[jj] - probNTagsErrDn[jj];
 
@@ -685,8 +703,10 @@ int main(int argc, char* argv[]) {
       if(debug > 2) std::cout << "[contamination] building global probabilities for contamination" << std::endl;
       
       // get the contamation sample tree
+      std::cout << "[contamination] Looking for contamination file with path " << contamPath << std::endl;
       TFile	contamFile(contamPath.c_str(), "READ");
       TTree*	contamTree = (TTree*)contamFile.Get(treeName.c_str());
+      //      contamTree->Print();
       TTree*	contamTreeHT = (TTree*)contamFile.Get("eventInfo");
 
       // build the master jet probability comupter using hte global probaiblities and the contamination
@@ -703,10 +723,6 @@ int main(int argc, char* argv[]) {
       for(long int event = 0; event < nEvents; ++event) {
 	if(debug > 2) std::cout << "[contamination] Checking event selection... "  <<  std::endl;	
 
-	// make sure the vent passes the even tpreseleciton
-	bool eventPassSelection = jetSel.doesEventPassSelection(contamTree, event, valiIndex);
-	if(!eventPassSelection) continue;
-	
 	// get the probabilities of n-tags for the signal
 	std::vector<double> nTagProbVector = contamJetCalc.getNJetTaggedVector(event, maxJetTags);
 	// get the actual number of tags per event
@@ -717,11 +733,23 @@ int main(int argc, char* argv[]) {
 	// loop over the various possibilities of jet tags up to max tags
 	for(int jj = 0; (jj <= nJets) && (jj <= maxJetTags); ++jj ) {
 	  if(debug > 2) std::cout << "[CONTAMINATION] Checking for jets jj "  << jj <<  " nJets " << nJets << std::endl;
+	  if (nJets == 0) break;
 	  // sample + contamination 
 	  nTagHistPred.Fill(jj, nTagProbVector[jj] * scale_factor);	  
 	  // contamination only
 	  if(taggedVector[jj]) nTagged++;
 	} // loop over the possible number of jets in the event
+
+	// check the index matches for the validation sample and that the kinematic / trigger requirements are satisfied
+	bool	passValidationIndex	     = (int(event) % nDivisions == valiIndex);   // is the correct validation sample
+	// is in the signal region for	    <= 2 divisions
+	bool	passSignalTagRegion	     = (nTagged >= 2 && nDivisions <= 2);  
+	// passes the trigger and kinematic requirements
+	bool	eventPassKinematicSelection  = jetSel.doesEventPassSelection(tree, event);
+	// two ways to get into the validation sample (signal region or correct validation index)
+	bool	eventPassSelection	     = eventPassKinematicSelection && (passValidationIndex || passSignalTagRegion);        
+	if(!eventPassSelection) continue;
+	
 	// fill the number taged for the (samp + contam) and contam only
 	nTagHistTrue.Fill(nTagged, scale_factor);
 	nTagHistTrue_contam->Fill(nTagged, scale_factor);    

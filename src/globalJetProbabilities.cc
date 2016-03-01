@@ -171,8 +171,8 @@ globalJetProbabilities::globalJetProbabilities(const std::string& label_,
   allJetHist.Print();
 
   // rebin the histograms so they can be divided
-  taggedJetHist.Rebin(nBins, "", &(histBinVals[0]));
-  allJetHist.Rebin(nBins, "", &(histBinVals[0]));
+  taggedJetHist = (TH1D)*(TH1D*)taggedJetHist.Rebin(nBins, "", &(histBinVals[0]));
+  allJetHist    = (TH1D)*(TH1D*)allJetHist.Rebin(nBins, "", &(histBinVals[0]));
 
   // taggedJetHist = (TH1D)*(TH1D*)taggedJetHist.Rebin(nBins, "", &(histBinVals[0]));
   // allJetHist	= (TH1D)*(TH1D*)allJetHist.Rebin(nBins, "", &(histBinVals[0]));
@@ -191,9 +191,9 @@ globalJetProbabilities::globalJetProbabilities(const std::string& label_,
   // make copies off the histogram for the efficiency with the same binning
   ratioHistEff	    = (TH1D)*(TH1D*)allJetHist.Clone(effHistName.c_str());
   ratioHistEff.Reset();
-  ratioHistEffErrUp = (TH1D)*(TH1D*)allJetHist.Clone((effHistName+"Up").c_str());
+  ratioHistEffErrUp = (TH1D)*(TH1D*)allJetHist.Clone((effHistNameUp).c_str());
   ratioHistEffErrUp.Reset();
-  ratioHistEffErrDn = (TH1D)*(TH1D*)allJetHist.Clone((effHistName+"Dn").c_str());
+  ratioHistEffErrDn = (TH1D)*(TH1D*)allJetHist.Clone((effHistNameDn).c_str());
   ratioHistEffErrDn.Reset();
 
   // parse the central values and errors of the ratio Graph
@@ -217,7 +217,7 @@ globalJetProbabilities::globalJetProbabilities(const std::string& label_,
 
     ratioHistEff.SetBinContent(bin, eff);    
     ratioHistEffErrDn.SetBinContent(binDn, yEffErrorDnVals[ii]);    
-    ratioHistEffErrUp.SetBinContent(binDn, yEffErrorUpVals[ii]);    
+    ratioHistEffErrUp.SetBinContent(binUp, yEffErrorUpVals[ii]);    
   }   
   
   // check the histogram was printed
@@ -240,17 +240,17 @@ Json::Value globalJetProbabilities::getProbabilitiesJSON() {
     Json::Value effErrDn(Json::arrayValue);    
 
     // loop over bins in the histogram for that category 
-    for(int bin = 1; bin < histBinVals.size(); ++bin) {      
-
-      // histbinvals is the array of the binning and begins with 0
-      float binVal	= histBinVals[bin-1];
+    for(int bin = 0; bin < histBinVals.size(); ++bin) {      
+      // histbinvals is the array of the binning and begins with index=0 so use bin
+      int   histBin     = bin+1;
+      float binVal      = histBinVals[bin];
       // get the values from the histograms 
       // histograms first bin is numbered 1 (0 is the underflow bin)
-      float tagVal	= taggedJetHist.GetBinContent(bin);
-      float allJetVal	= allJetHist.GetBinContent(bin);
-      float effVal	= ratioHistEff.GetBinContent(bin);
-      float effValErrUp = ratioHistEffErrUp.GetBinContent(bin);
-      float effValErrDn = ratioHistEffErrDn.GetBinContent(bin);
+      float tagVal	= taggedJetHist.GetBinContent(histBin);
+      float allJetVal	= allJetHist.GetBinContent(histBin);
+      float effVal	= ratioHistEff.GetBinContent(histBin);
+      float effValErrUp = ratioHistEffErrUp.GetBinContent(histBin);
+      float effValErrDn = ratioHistEffErrDn.GetBinContent(histBin);
       
       // add the into the array 
       binning.append(Json::Value(binVal));
@@ -275,6 +275,7 @@ Json::Value globalJetProbabilities::getProbabilitiesJSON() {
     event[catName]["jetTagString"]	   = jetCutString;
     event[catName]["eventTagString"]	   = eventCutString;
     event[catName]["triggerCutOnlyString"] = triggerCutOnlyString;
+    event[catName]["baselineJetCutString"] = baselineJetCutString;
     // encode the values of the histograms
     event[catName]["tagged"]		   = tagged;
     event[catName]["all"]		   = all;
@@ -344,8 +345,6 @@ void globalJetProbabilities::printHistStatus() {
 }
 
 void globalJetProbabilities::removeSignalRegion(TTree*& tree,jetSelector & jetSel, bool isContam, float norm) {
-  std::cout << "\n\n -----Removing Signal Region from the probaiblities" << std::endl;
-
   float applyNorm    = 1;
   float tagSigNorm   = 1; 
   float noTagSigNorm = 1; 
@@ -377,8 +376,9 @@ void globalJetProbabilities::removeSignalRegion(TTree*& tree,jetSelector & jetSe
     tree->GetEntry(event);
 
     // make sure the event passes the event selection with the correct validation index
-    
-    bool eventPassSelection = jetSel.doesEventPassSelection(tree, event, jetSel.probIndex);
+    bool passProbIndex = (int(event) % jetSel.nDivisions == jetSel.probIndex);
+    if(!passProbIndex) continue; 
+    bool eventPassSelection = jetSel.doesEventPassSelection(tree, event);
     if(!eventPassSelection) continue;
     
     // check each jets whether it is tagged
@@ -469,7 +469,7 @@ void globalJetProbabilities::removeSignalRegion(TTree*& tree,jetSelector & jetSe
 
     ratioHistEff.SetBinContent(bin, eff);    
     ratioHistEffErrDn.SetBinContent(binDn, yEffErrorDnVals[ii]);    
-    ratioHistEffErrUp.SetBinContent(binDn, yEffErrorUpVals[ii]);    
+    ratioHistEffErrUp.SetBinContent(binUp, yEffErrorUpVals[ii]);    
   } // end loop over points in the ratiograph
 }
 
@@ -502,8 +502,8 @@ void globalJetProbabilities::addSignalContamination(TTree*& tree, jetSelector & 
   TH1D sigCont_allJetHist	= (TH1D)*(TH1D*)gDirectory->Get(allJetHistName.c_str()); 
 
   // rebin the contamination hists
-  sigCont_taggedJetHist.Rebin(nBins, "", &(histBinVals[0]));
-  sigCont_allJetHist.Rebin(nBins, "", &(histBinVals[0])); 
+  sigCont_taggedJetHist = (TH1D)*(TH1D*)sigCont_taggedJetHist.Rebin(nBins, "", &(histBinVals[0]));
+  sigCont_allJetHist	= (TH1D)*(TH1D*)sigCont_allJetHist.Rebin(nBins, "", &(histBinVals[0])); 
 
   // sigCont_taggedJetHist = (TH1D)*(TH1D*)sigCont_taggedJetHist.Rebin(nBins, "", &(histBinVals[0]));
   // sigCont_allJetHist	= (TH1D)*(TH1D*)sigCont_allJetHist.Rebin(nBins, "", &(histBinVals[0])); 
