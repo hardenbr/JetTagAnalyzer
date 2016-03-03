@@ -174,10 +174,6 @@ globalJetProbabilities::globalJetProbabilities(const std::string& label_,
   taggedJetHist = (TH1D)*(TH1D*)taggedJetHist.Rebin(nBins, "", &(histBinVals[0]));
   allJetHist    = (TH1D)*(TH1D*)allJetHist.Rebin(nBins, "", &(histBinVals[0]));
 
-  // taggedJetHist = (TH1D)*(TH1D*)taggedJetHist.Rebin(nBins, "", &(histBinVals[0]));
-  // allJetHist	= (TH1D)*(TH1D*)allJetHist.Rebin(nBins, "", &(histBinVals[0]));
-
-
   // build the corresponding efficieny graph
   ratioGraph.BayesDivide(&taggedJetHist, &allJetHist);
   std::string graphName = "efficieny_" + label;
@@ -185,7 +181,6 @@ globalJetProbabilities::globalJetProbabilities(const std::string& label_,
   ratioGraph.SetName(graphName.c_str());
 
   if(debug > -1) std::cout << "Building a histogram based on the tgraph " << std::endl;         
-
   // build histographs based on the ratioGraph for the fake rate
   // copy the all jets histogram  and clear the values
   // make copies off the histogram for the efficiency with the same binning
@@ -203,7 +198,7 @@ globalJetProbabilities::globalJetProbabilities(const std::string& label_,
   double *  yEffErrorDnVals = ratioGraph.GetEYlow();
   int	    nPoints	    = ratioGraph.GetN();
 
-  if(debug > -1) std::cout << "Filling the parsed values " << std::endl;         
+  if(debug > -1) std::cout << "Filling the parsed values form the tgraph into histograms " << std::endl;         
   // fill the histogram with the values from the graph
   for(int ii = 0; ii < nPoints; ++ii) {
     // parse the efficiency 
@@ -375,32 +370,38 @@ void globalJetProbabilities::removeSignalRegion(TTree*& tree,jetSelector & jetSe
     if(event % 5000 == 0) std::cout << "Processing Signal Region  Removal from Probabilities # --- "  << event << std::endl;
     tree->GetEntry(event);
 
-    // make sure the event passes the event selection with the correct validation index
-    bool passProbIndex = (int(event) % jetSel.nDivisions == jetSel.probIndex);
+    int nJets = tree->GetLeaf("nCaloJets")->GetValue(0);
+    int evNum = tree->GetLeaf("evNum")->GetValue(0);
+
+    // make sure the event passes the event selection with the correct event index
+    bool passProbIndex = (evNum % jetSel.nDivisions == jetSel.probIndex);
     if(!passProbIndex) continue; 
+
+    // check the kinematic selection is satisfied
     bool eventPassSelection = jetSel.doesEventPassSelection(tree, event);
     if(!eventPassSelection) continue;
     
-    // check each jets whether it is tagged
+    // check each jet if it is tagged
     std::vector<bool> taggedVector = jetSel.getJetTaggedVector(tree, event);
 
     // get the total number of taggs in the events
     const int	nTagBins  = taggedVector.size();
     int		totalTags = 0;
-    for(int ii = 0; ii < nTagBins; ++ii) {
-      totalTags += taggedVector[ii] ? 1 : 0;
-    }
+    for(int ii = 0; ii < nJets; ++ii) totalTags += taggedVector[ii] ? 1 : 0;
 
-    // skip all events not in the signal region of tags   
-    if(totalTags < 2) continue;
-    
+    // skip all events not in the signal region
+    // we only want to remove the contribution that is in the signal region from the probabilities
+    if(totalTags <= 1) continue;
+
+    // this is a vector of the values of the variable used to parameterize the fake rate
     std::vector<float> binningVarVector = jetSel.getJetBinningVarVector(tree, event);
-    for(int ii = 0; ii < nTagBins; ++ii) {
+    for(int ii = 0; ii < nJets; ++ii) {
+      // zero tracks we can skip
       if(binningVarVector[ii] < 1) continue; 
+
       // if the jet is taagged fill the tagged hist
-      if(taggedVector[ii]) {
-	signalRegionTagged.Fill(binningVarVector[ii], applyNorm);      
-      }
+      if(taggedVector[ii]) signalRegionTagged.Fill(binningVarVector[ii], applyNorm);      
+
       // always fil the all hist
       signalRegionAll.Fill(binningVarVector[ii], applyNorm);
     } // endloop over jets in the event               

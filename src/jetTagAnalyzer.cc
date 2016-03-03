@@ -418,30 +418,6 @@ int main(int argc, char* argv[]) {
     } // end loading global probaiblities from json
 
 
-    //get the eventweight for the pilup
-    // if(isMC && pileupFileName != "") {
-    //   if(debug > 3) std::cout << "Building the pileup Hist for this sample ....." << std::endl;
-    //   TH1D* pileupDistMC = (TH1D*)pileupHist.Clone();
-    //   std::string histName = "puMC"+std::to_string(ss);
-    //   pileupDistMC->SetName(histName.c_str());
-    //   pileupDistMC->SetTitle(histName.c_str());
-    //   pileupDistMC->Print();
-    //   pileupDistMC->Reset();
-    //   //tree->Draw(("genPU>>"+histName).c_str(),"","goff");
-    //   //pileupDistMC->Print();
-
-    //   if(debug > 3) std::cout << "[PU WEIGHTING] Scaling Pileup Distribution....." << std::endl;
-    //   // normalize the two distributions
-    //   //pileupDistMC->Scale(1.0 / pileupDistMC->Integral());
-      
-    //   // get the ratio
-    //   if(debug > 3) std::cout << "[PU WEIGHTING] Dividing PU Distributions ....." << std::endl;
-    //   pileupWeightHist = (TH1D*)pileupHist.Clone();
-    //   pileupWeightHist->Divide(pileupDistMC);
-    //   if(debug > 3) std::cout << "[PU WEIGHTING] After Clone and Division ....." << std::endl;
-    //   pileupWeightHist->Print();
-    // }
-
     // check the status of all objects in the global probabilities to by applied
     globalJetProbToApply->printHistStatus();
 
@@ -545,7 +521,8 @@ int main(int argc, char* argv[]) {
       }
       
       // check the index matches for the validation sample and that the kinematic / trigger requirements are satisfied
-      bool  passValidationIndex		= (int(event) % nDivisions == valiIndex); // is the correct validation sample
+      int   evNum = tree->GetLeaf("evNum")->GetValue(0);
+      bool  passValidationIndex		= (evNum % nDivisions == valiIndex) || !runChop; // is the correct validation sample or no chop
       // is in the signal region for <= 2 divisions
       bool  passSignalTagRegion		= (nTagged >= 2 && nDivisions <= 2);  
       // passes the trigger and kinematic requirements
@@ -741,7 +718,7 @@ int main(int argc, char* argv[]) {
 	} // loop over the possible number of jets in the event
 
 	// check the index matches for the validation sample and that the kinematic / trigger requirements are satisfied
-	bool	passValidationIndex	     = (int(event) % nDivisions == valiIndex);   // is the correct validation sample
+	bool	passValidationIndex	     = (int(event) % nDivisions == valiIndex) || !runChop;   // is the correct validation sample or not running chop
 	// is in the signal region for	    <= 2 divisions
 	bool	passSignalTagRegion	     = (nTagged >= 2 && nDivisions <= 2);  
 	// passes the trigger and kinematic requirements

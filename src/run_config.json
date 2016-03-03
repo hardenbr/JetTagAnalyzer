@@ -1,5 +1,5 @@
 {  "outputFileName":"XX4J",
-   "outputDir": "/afs/cern.ch/work/h/hardenbr/2015/DIJET/JETPROB/MAR1/XX4J_SIGONLY",
+   "outputDir": "/afs/cern.ch/work/h/hardenbr/2015/DIJET/JETPROB/MAR3/XX4J_SIGONLY",
    "debug":-1,
    "signalContam":{ "run" : false, 
                     "label":"XXTo4J_300_30mm",
