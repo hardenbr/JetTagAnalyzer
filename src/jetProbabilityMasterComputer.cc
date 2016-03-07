@@ -1,5 +1,5 @@
 #include "jetProbabilityMasterComputer.h"
-
+#include <cmath>
 // send a pointer to the tree containing the branches to use for the fake rate computation
 jetProbabilityMasterComputer::jetProbabilityMasterComputer(globalJetProbabilities * jetProb_, TTree * jetTree_, const int & debug_) {
   std::cout << "Begin Constructor probabilities " << std::endl;
