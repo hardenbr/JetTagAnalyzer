@@ -300,14 +300,17 @@ int main(int argc, char* argv[]) {
 
     // get the eventWeight related to the processed piece of the sample
     if(isMC && !isSig) {
-      if(debug > 3) std::cout << "Getting the filter count tree ....." << std::endl;
+      std::cout << "Getting the filter count tree ....." << std::endl;
       TTree * filterTree = (TTree*)(thisFile.Get("filtCount"));    
       filterTree->Draw("nEventsTotal>>event_total_hist","nEventsTotal","goff");
       filterTree->Draw("nEventsFiltered>>event_filt_hist","nEventsFiltered","goff");
-      TH1F*   totalEventHist	  = (TH1F*)gDirectory->Get("event_total_hist");
-      TH1F*   filteredEventHist	  = (TH1F*)gDirectory->Get("event_filt_hist");
-      total_processed	  = totalEventHist->Integral();
-      filtered         	  = filteredEventHist->Integral();
+      TH1F* totalEventHist    = (TH1F*)gDirectory->Get("event_total_hist");
+      TH1F* filteredEventHist = (TH1F*)gDirectory->Get("event_filt_hist");
+      total_processed	      = totalEventHist->Integral();
+      filtered		      = filteredEventHist->Integral();
+      std::cout << "Total MC events processed: " << total_processed <<  std::endl;
+      std::cout << "Total MC events post-filter: " << filtered <<  std::endl;
+      std::cout << "Corresponding Event Weight:: " << xsec / total_processed <<  std::endl;
     }    
 
     // First get some global information about the sample
@@ -507,6 +510,15 @@ int main(int argc, char* argv[]) {
       if(event < beginEvent) continue; 
       tree->GetEntry(event);
 
+      // check the index matches for the validation sample and that the kinematic / trigger requirements are satisfied
+      int   evNum		= tree->GetLeaf("evNum")->GetValue(0);
+      bool  passValidationIndex	= (evNum % nDivisions == valiIndex) || !runChop;    // is the correct validation sample or no chop
+
+      // speed up when we are running pulls
+      // no need to calculate the number of tags if we are performing a chop with nDiv > 2
+      // because we are not subtracting the signal region from the probabilities
+      if(nDivisions > 2 && runChop && !passValidationIndex) continue;
+
       // Calculate the number of tagged jets
       if(debug > 2) std::cout << "Getting the nTagged Jets Vector.." << std::endl;
       std::vector<bool> taggedVector = jetSel.getJetTaggedVector(tree, event);      
@@ -520,9 +532,6 @@ int main(int argc, char* argv[]) {
 	isTagged[jj] = taggedVector[jj] ? 1 : 0;
       }
       
-      // check the index matches for the validation sample and that the kinematic / trigger requirements are satisfied
-      int   evNum = tree->GetLeaf("evNum")->GetValue(0);
-      bool  passValidationIndex		= (evNum % nDivisions == valiIndex) || !runChop; // is the correct validation sample or no chop
       // is in the signal region for <= 2 divisions
       bool  passSignalTagRegion		= (nTagged >= 2 && nDivisions <= 2);  
       // passes the trigger and kinematic requirements

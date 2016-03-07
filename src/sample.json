@@ -9,7 +9,7 @@
            "xsec": 1
        },
        { 
-          "runSample": false,   
+          "runSample": true,   
            "label": "DATA_DisplacedJet",
            "stack": "DATA",
            "path":  "DisplacedJet_FULL.root",
@@ -25,28 +25,6 @@
            "isMC":  false,
            "isSig": false,
            "xsec": 1
-       },
-       {  
-          "runSample": true,
-          "label": "XXTo4J_700_100mm",
-          "stack": "XXTo4J_700_100",
-          "path":  "XXTo4J_M-700_CTau-100mm_FULL.root",
-          "isMC":  true,
-          "isSig": true,
-          "xsec": 1,
-          "x_limit_label": 700,
-          "y_limit_label": 100
-       },
-       {  
-          "runSample": false,
-          "label": "QCD_1000_1500mm",
-          "stack": "QCD_1000_1500",
-          "path":  "QCD_HT1000to1500_FULL.root",
-          "isMC":  true,
-          "isSig": false,
-          "xsec": 1206,
-          "x_limit_label": 1000,
-          "y_limit_label": 1400
        }
   ] }
 
