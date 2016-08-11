@@ -19,6 +19,10 @@ for line in lines:
     # x_label = line.split("HT")[1].split("to")[0]
     # y_label = line.split("HT")[1].split("to")[1].split("_")[0]
 
+    #mh125
+    #x_label = line.split("MS")[1].split("_")[0]
+    #y_label = line.split("ctauS")[1].split("_")[0]
+
     # neutrino
     #x_label = int(line.split("_M")[1].split("_")[0])
     #y_label = int(line.split("tau")[1].split("um")[0])

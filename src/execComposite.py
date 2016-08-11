@@ -1,9 +1,9 @@
 import sys, os, time
 nDiv        = int(sys.argv[1])
 run_command = False
-only_probs = False
-minIndex = 0
-maxIndex = 9999
+only_probs  = False
+minIndex    = 0
+maxIndex    = 9999
 
 if len(sys.argv) > 3:
     minIndex    = int(sys.argv[2])
@@ -26,6 +26,6 @@ for ii in range(nDiv):
             if run_command: 
                 print "RUNNING IT.....", runString                
                 os.system(runString)
-                print "SLEEPING 30 Seconds....."
-                time.sleep(30)
+                print "SLEEPING 45 Seconds....."
+                time.sleep(5)
             

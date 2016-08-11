@@ -1,17 +1,6 @@
 {"samples": [
 {  
           "runSample": true,
-          "label": "DisplacedSUSY_1000_1000mm",
-          "stack": "DisplacedSUSY_1000_1000",
-          "path":  "DisplacedSUSY_StopToBL_M-1000_CTau-1000_FULL.root",
-          "isMC":  true,
-          "isSig": true,
-          "xsec": 1,
-          "x_limit_label": 1000,
-          "y_limit_label": 1000
-       },
-{  
-          "runSample": true,
           "label": "DisplacedSUSY_1000_100mm",
           "stack": "DisplacedSUSY_1000_100",
           "path":  "DisplacedSUSY_StopToBL_M-1000_CTau-100_FULL.root",
@@ -20,6 +9,72 @@
           "xsec": 1,
           "x_limit_label": 1000,
           "y_limit_label": 100
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_1000_10mm",
+          "stack": "DisplacedSUSY_1000_10",
+          "path":  "DisplacedSUSY_StopToBL_M-1000_CTau-10_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1000,
+          "y_limit_label": 10
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_1000_1mm",
+          "stack": "DisplacedSUSY_1000_1",
+          "path":  "DisplacedSUSY_StopToBL_M-1000_CTau-1_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1000,
+          "y_limit_label": 1
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_1200_1000mm",
+          "stack": "DisplacedSUSY_1200_1000",
+          "path":  "DisplacedSUSY_StopToBL_M-1200_CTau-1000_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1200,
+          "y_limit_label": 1000
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_1200_100mm",
+          "stack": "DisplacedSUSY_1200_100",
+          "path":  "DisplacedSUSY_StopToBL_M-1200_CTau-100_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1200,
+          "y_limit_label": 100
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_1200_10mm",
+          "stack": "DisplacedSUSY_1200_10",
+          "path":  "DisplacedSUSY_StopToBL_M-1200_CTau-10_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1200,
+          "y_limit_label": 10
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_1200_1mm",
+          "stack": "DisplacedSUSY_1200_1",
+          "path":  "DisplacedSUSY_StopToBL_M-1200_CTau-1_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 1200,
+          "y_limit_label": 1
        },
 {  
           "runSample": true,
@@ -34,17 +89,6 @@
        },
 {  
           "runSample": true,
-          "label": "DisplacedSUSY_200_100mm",
-          "stack": "DisplacedSUSY_200_100",
-          "path":  "DisplacedSUSY_StopToBL_M-200_CTau-100_FULL.root",
-          "isMC":  true,
-          "isSig": true,
-          "xsec": 1,
-          "x_limit_label": 200,
-          "y_limit_label": 100
-       },
-{  
-          "runSample": true,
           "label": "DisplacedSUSY_200_10mm",
           "stack": "DisplacedSUSY_200_10",
           "path":  "DisplacedSUSY_StopToBL_M-200_CTau-10_FULL.root",
@@ -53,17 +97,6 @@
           "xsec": 1,
           "x_limit_label": 200,
           "y_limit_label": 10
-       },
-{  
-          "runSample": true,
-          "label": "DisplacedSUSY_200_1mm",
-          "stack": "DisplacedSUSY_200_1",
-          "path":  "DisplacedSUSY_StopToBL_M-200_CTau-1_FULL.root",
-          "isMC":  true,
-          "isSig": true,
-          "xsec": 1,
-          "x_limit_label": 200,
-          "y_limit_label": 1
        },
 {  
           "runSample": true,
@@ -111,25 +144,58 @@
        },
 {  
           "runSample": true,
-          "label": "DisplacedSUSY_500_1000mm",
-          "stack": "DisplacedSUSY_500_1000",
-          "path":  "DisplacedSUSY_StopToBL_M-500_CTau-1000_FULL.root",
+          "label": "DisplacedSUSY_400_1000mm",
+          "stack": "DisplacedSUSY_400_1000",
+          "path":  "DisplacedSUSY_StopToBL_M-400_CTau-1000_FULL.root",
           "isMC":  true,
           "isSig": true,
           "xsec": 1,
-          "x_limit_label": 500,
+          "x_limit_label": 400,
           "y_limit_label": 1000
        },
 {  
           "runSample": true,
-          "label": "DisplacedSUSY_500_10mm",
-          "stack": "DisplacedSUSY_500_10",
-          "path":  "DisplacedSUSY_StopToBL_M-500_CTau-10_FULL.root",
+          "label": "DisplacedSUSY_400_100mm",
+          "stack": "DisplacedSUSY_400_100",
+          "path":  "DisplacedSUSY_StopToBL_M-400_CTau-100_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 400,
+          "y_limit_label": 100
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_400_10mm",
+          "stack": "DisplacedSUSY_400_10",
+          "path":  "DisplacedSUSY_StopToBL_M-400_CTau-10_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 400,
+          "y_limit_label": 10
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_400_1mm",
+          "stack": "DisplacedSUSY_400_1",
+          "path":  "DisplacedSUSY_StopToBL_M-400_CTau-1_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 400,
+          "y_limit_label": 1
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_500_100mm",
+          "stack": "DisplacedSUSY_500_100",
+          "path":  "DisplacedSUSY_StopToBL_M-500_CTau-100_FULL.root",
           "isMC":  true,
           "isSig": true,
           "xsec": 1,
           "x_limit_label": 500,
-          "y_limit_label": 10
+          "y_limit_label": 100
        },
 {  
           "runSample": true,
@@ -140,6 +206,94 @@
           "isSig": true,
           "xsec": 1,
           "x_limit_label": 500,
+          "y_limit_label": 1
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_600_1000mm",
+          "stack": "DisplacedSUSY_600_1000",
+          "path":  "DisplacedSUSY_StopToBL_M-600_CTau-1000_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 600,
+          "y_limit_label": 1000
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_600_100mm",
+          "stack": "DisplacedSUSY_600_100",
+          "path":  "DisplacedSUSY_StopToBL_M-600_CTau-100_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 600,
+          "y_limit_label": 100
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_600_10mm",
+          "stack": "DisplacedSUSY_600_10",
+          "path":  "DisplacedSUSY_StopToBL_M-600_CTau-10_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 600,
+          "y_limit_label": 10
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_600_1mm",
+          "stack": "DisplacedSUSY_600_1",
+          "path":  "DisplacedSUSY_StopToBL_M-600_CTau-1_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 600,
+          "y_limit_label": 1
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_700_1000mm",
+          "stack": "DisplacedSUSY_700_1000",
+          "path":  "DisplacedSUSY_StopToBL_M-700_CTau-1000_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 700,
+          "y_limit_label": 1000
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_700_100mm",
+          "stack": "DisplacedSUSY_700_100",
+          "path":  "DisplacedSUSY_StopToBL_M-700_CTau-100_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 700,
+          "y_limit_label": 100
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_700_10mm",
+          "stack": "DisplacedSUSY_700_10",
+          "path":  "DisplacedSUSY_StopToBL_M-700_CTau-10_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 700,
+          "y_limit_label": 10
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_700_1mm",
+          "stack": "DisplacedSUSY_700_1",
+          "path":  "DisplacedSUSY_StopToBL_M-700_CTau-1_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 700,
           "y_limit_label": 1
        },
 {  
@@ -166,17 +320,6 @@
        },
 {  
           "runSample": true,
-          "label": "DisplacedSUSY_800_10mm",
-          "stack": "DisplacedSUSY_800_10",
-          "path":  "DisplacedSUSY_StopToBL_M-800_CTau-10_FULL.root",
-          "isMC":  true,
-          "isSig": true,
-          "xsec": 1,
-          "x_limit_label": 800,
-          "y_limit_label": 10
-       },
-{  
-          "runSample": true,
           "label": "DisplacedSUSY_800_1mm",
           "stack": "DisplacedSUSY_800_1",
           "path":  "DisplacedSUSY_StopToBL_M-800_CTau-1_FULL.root",
@@ -184,6 +327,39 @@
           "isSig": true,
           "xsec": 1,
           "x_limit_label": 800,
+          "y_limit_label": 1
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_900_100mm",
+          "stack": "DisplacedSUSY_900_100",
+          "path":  "DisplacedSUSY_StopToBL_M-900_CTau-100_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 900,
+          "y_limit_label": 100
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_900_10mm",
+          "stack": "DisplacedSUSY_900_10",
+          "path":  "DisplacedSUSY_StopToBL_M-900_CTau-10_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 900,
+          "y_limit_label": 10
+       },
+{  
+          "runSample": true,
+          "label": "DisplacedSUSY_900_1mm",
+          "stack": "DisplacedSUSY_900_1",
+          "path":  "DisplacedSUSY_StopToBL_M-900_CTau-1_FULL.root",
+          "isMC":  true,
+          "isSig": true,
+          "xsec": 1,
+          "x_limit_label": 900,
           "y_limit_label": 1
        }
 ]}

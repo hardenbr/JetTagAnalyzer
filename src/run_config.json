@@ -1,15 +1,17 @@
-{  "outputFileName":"XX4J",
-   "outputDir": "/afs/cern.ch/work/h/hardenbr/2015/DIJET/JETPROB/MAR7/BASELINE_FAST_PULLS",
+{
+   "outputFileName":"XX4J",
+   "outputDir": "/afs/cern.ch/work/h/hardenbr/2015/DIJET/JETPROB/AUG11/QCD_NOBS_CONSTRAINT",
    "debug":-1,
    "signalContam":{ "run" : false, 
-                    "label":"XXTo4J_300_30mm",
-		    "norm": 100},
+                    "label":"XXTo4J_100_10mm",
+		    "norm": 1000},
    "puProfile": "PILEUP_PROFILES/silverjsonPileup_6900.root",
    "mcPuProfile": "PILEUP_PROFILES/mcPU.root",
    "applyPUWeight": false,
    "writeTree": true,		    
    "onlyProbs": false,
-   "removeSignalRegionFromProbs" : true,
+   "removeSignalRegionFromProbs" : false,
    "beginEvent": -1,
    "endEvent": -1,
-   "maxJetTags": 7 }
+   "maxJetTags": 7
+}

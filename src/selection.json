@@ -4,14 +4,10 @@
   //
   // variables that will be included in the final trees
   //
-  "jetVariablesToSave" : ["caloJetPt","caloJetEta", "caloJetPhi", "jetMedianIPLogSig2D", 
-  "caloJetAlphaMax", "sumTrackPt", "medianCosThetaDet2D", "jetNTracks", "evNum","eventCaloHT", "genPU",
-  "jetV0NJetClusterSize"],
-
+  "jetVariablesToSave" : ["caloJetPt","caloJetEta", "caloJetPhi", "jetMedianIPLogSig2D", "caloJetAlphaMax", "sumTrackPt", "medianCosThetaDet2D", "jetNTracks", "evNum","eventCaloHT", "genPU", "jetV0NJetClusterSize","jetNTracksPrompt","jetNTracksDisp","genWeightsRMS","genWeight", "pvN","pvY","pvX","pvSumPtSq", "bsX","bsY", "bsLxy","bsWidthX","bsWidthY","bsPV2D","bsPV3D","run","lumi","event"],
   "eventVariablesToSave" : ["nCaloJets",  
   			 "passDisplaced500_40", "passDisplaced350_40", "passDisplaced400_40","passDisplaced250_40", 
 			 "passHT200", "passHT275", "passHT325", "passHT425", "passHT575","passPFHT800","passMu20"],
-  //
   // write the selection as a single string for histogram building with tdraw 
   //
   "baselineJetSelectionCutString" : "(caloJetPt > 60 && abs(caloJetEta) < 2.0 && jetNTracks > 0)",
@@ -21,7 +17,6 @@
   // 
   // variables that will be cut on during the tagging
   //
-
   "eventSelection": [
    {
       "variable": "nCaloJets",
@@ -50,19 +45,22 @@
    {
       "variable": "jetMedianIPLogSig2D",
       "min": 2.0,
-      "max": 9999
+      "max": 9999,
+      "smear_factor": 0.1   
    },
    {
       "isRatio": true,
       "num": "caloJetAlphaMax",
       "den": "sumTrackPt",
       "min": -.01,
-      "max": 0.1   
+      "max": 0.1,
+      "smear_factor": 0.0   
    },
    {
       "variable": "medianCosThetaDet2D",
       "min": 0.05,
-      "max": 9999   
+      "max": 9999,
+      "smear_factor": 0.1   
    },
    {
       "variable": "jetNTracks",

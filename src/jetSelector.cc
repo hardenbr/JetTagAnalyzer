@@ -1,4 +1,5 @@
 #include "jetSelector.h"
+#include <random>
 
 // construct the selector 
 jetSelector::jetSelector(const Json::Value & selectorJSON, 
@@ -13,6 +14,9 @@ jetSelector::jetSelector(const Json::Value & selectorJSON,
   valiIndex(valiIndex_),
   debug(debug_)
 {  
+
+  // initialize the random see
+  srand(123456);
 
   jetCutString	       = selectorJSON.get("jetSelectionCutString","1").asString();
   eventCutString       = selectorJSON.get("eventSelectionCutString","1").asString();
@@ -44,7 +48,7 @@ jetSelector::jetSelector(const Json::Value & selectorJSON,
   // fill vectors with the values from the JSON
   // print the values for the binned variable for the fake rate 
   std::cout << "[jetSelector] bin values for the fake rate variable: ";
-  for(int ii = 0; ii < histBins.size(); ++ii)  {
+  for(int ii = 0; ii < int(histBins.size()); ++ii)  {
     double binValue = histBins[ii].asDouble();
     std::cout << binValue << " ";
     histBinVals.push_back(binValue);
@@ -53,7 +57,7 @@ jetSelector::jetSelector(const Json::Value & selectorJSON,
 
   // print out the bin values for the category variables
   std::cout << "[jetSelector] bin values for the category variable: ";
-  for(int ii = 0; ii < catBins.size(); ++ii)  { 
+  for(int ii = 0; ii < int(catBins.size()); ++ii)  { 
     double binValue = catBins[ii].asDouble();
     std::cout << binValue << " ";
     catBinVals.push_back(binValue);
@@ -78,11 +82,74 @@ jetSelector::jetSelector(const Json::Value & selectorJSON,
 
 }
 
+
+// returns a vector of tuples of track multiplicities (N_0, N+, N- ) indexed by the jets in the event
+// if isPrompt then access the prompt pdfs and use the offline prompt track multip.
+// if isDisp   then access the disp pdfs and use the offline disp track multip.
+// requires input of the lifetime in units of [mm] to select the correct PDFs
+std::vector<std::tuple<int,int,int> > jetSelector::buildOnlineTrackingFromJSON(TTree * tree, 
+									       long int event, 
+									       int lifetime,
+									       const Json::Value & pdfJSON, 
+									       const bool & isPrompt) {
+
+  std::vector<std::tuple<int,int,int> > resultVector;
+  if(debug > 5) std::cout << "[jetSelector]  Generating online tracking using RAWAOD+ PDFs from JSON " << std::endl;   
+  // get the event
+  tree->GetEntry(event);
+  if(debug > 5) std::cout << "[jetSelector]  Tree Entry retrieved  " << event << std::endl;    
+
+  if(debug > 5) std::cout << "[jetSelector] Getting Leaves" << std::endl;   
+  // get the relavant leaves 
+  TLeaf *   varLeaf    = tree->GetLeaf("nCaloJets");
+  // prompt offline track leaves
+  TLeaf *   promLeaf   = tree->GetLeaf("jetNTracksPrompt");
+  // displaced offline track leaves
+  TLeaf *   dispLeaf   = tree->GetLeaf("jetNTracksDisp");
+
+  // loop over the jets in the event  
+  float	    nJets   = varLeaf->GetValue(0);    
+  if(debug > 5) std::cout << "[jetSelector]  Begin Jet Loop for online tracking nJets " << nJets << std::endl;   
+  for(int jet = 0; jet < nJets; ++jet) {
+    
+    // set thisLeaf to the correct leaf pointer
+    TLeaf * thisLeaf   = isPrompt ? promLeaf : dispLeaf;
+    int	    nTracks   = thisLeaf->GetValue(jet);
+
+    // get the correct pdfs (either displaced or prompt)
+    std::string type   = isPrompt ? "prom" : "disp";
+    std::string typeUp = isPrompt ? "promUp" : "dispUp";
+    std::string typeDn = isPrompt ? "promDn" : "dispDn";
+
+    // throw a toy given the pdfs and the number of tracks per jet
+    if(debug > 5) std::cout << "[jetSelector]  Accessing json arrays and attempt to throw toy " << std::endl;   
+    std::string lifetime_str  = std::to_string(lifetime);
+    std::string nTracks_str   = std::to_string(nTracks);
+
+    std::pair<int,float>    trackToyPair    = throwPDFToy(pdfJSON[type][lifetime_str][nTracks_str], -1);
+    int			    nOnlineTracks   = trackToyPair.first;
+    float		    toyValue	    = trackToyPair.second;
+    // use the same toy value for the up and dn so the results are correlated
+    // that is, the Up and Dn are strictly higher or lower than the nominal value
+    std::pair<int,float>    trackToyPairUp  = throwPDFToy(pdfJSON[typeUp][lifetime_str][nTracks_str], toyValue);
+    int			    nOnlineTracksUp = trackToyPairUp.first;
+    std::pair<int,float>    trackToyPairDn  = throwPDFToy(pdfJSON[typeDn][lifetime_str][nTracks_str], toyValue);
+    int			    nOnlineTracksDn = trackToyPairDn.first;
+
+    std::tuple<int,int,int> thisTuple(nOnlineTracks, nOnlineTracksUp, nOnlineTracksDn);    
+    if(debug > 5) std::cout << "[jetSelector]  access complete.....pushing back 3 tuple of systematic varied " << std::endl;   
+    // add it to the result
+    resultVector.push_back(thisTuple);
+  } // end loop over jets  
+  
+  return resultVector;
+} // end method for online tracking PDF delivering
+  	     
 bool  jetSelector::doesEventPassSelection(TTree * tree, long int event) { 
 
  if(debug > 5) std::cout << "[jetSelector]  getting tree event for event selection " << std::endl; 
  tree->GetEntry(event);
- bool   eventPass = true;
+ 
  int	evNum	  = tree->GetLeaf("evNum")->GetValue(0);
  bool	isEven	  = (evNum % 2 == 0);
 
@@ -96,9 +163,8 @@ bool  jetSelector::doesEventPassSelection(TTree * tree, long int event) {
  //   std::string triggerName = triggerThresholds[ii].asString();
    
  // }
- 
- // assume all event variables are a single float variable
- for(int ii = 0; ii < eventSelection.size(); ++ii) {
+  // assume all event variables are a single float variable
+ for(int ii = 0; ii < int(eventSelection.size()); ++ii) {
    // check if the variable is an OR (for triggers mostly) 
    bool	isOR   = eventSelection[ii].get("isTriggerOR", false).asBool();
 
@@ -111,7 +177,7 @@ bool  jetSelector::doesEventPassSelection(TTree * tree, long int event) {
      Json::Value    htThresholds = eventSelection[ii]["htThresholds"];
 
      // loop over each variable in the OR
-     for(int var = 0; var < variables.size(); ++var){
+     for(int var = 0; var < int(variables.size()); ++var){
        std::string triggerName = variables[var].asString();
 
        tree->GetEntry(event); // call this AGAIN!
@@ -192,7 +258,8 @@ std::vector<float> jetSelector::getJetBinningVarVector(TTree * tree, int event) 
 }
 
 // given a tree and event produce a vector of whether the jet was tagged or not
-std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event) {
+// if isSmear then parse the smear value from the jet selection and compute accordingly
+std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event, const bool & isSmear, const bool & smearUp) {
 
   std::vector<bool> isTaggedVec; 
   tree->GetEntry(event);
@@ -205,7 +272,7 @@ std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event) {
   if(debug > 6) std::cout << "[jetSelector ] Begin looping event jets" << std::endl;  
   for(int jet = 0; jet < nJets; ++jet) {
     if(debug > 6) std::cout << "[jetSelector ] New Jet " << jet << "...egin looping selection variables" << std::endl;  
-    for(int ii = 0; ii < jetSelection.size(); ++ii) {
+    for(int ii = 0; ii < int(jetSelection.size()); ++ii) {
 
       bool  isRatio = jetSelection[ii].get("isRatio",false).asBool();
 
@@ -231,15 +298,24 @@ std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event) {
 	float	numVal = numLeaf->GetValue(jet);
 	float	denVal = denLeaf->GetValue(jet);
 	val	       = numVal / denVal;
+
       }
       else {
 	std::string var	    = jetSelection[ii].get("variable","ERROR").asString();
 	if(debug > 6) std::cout << "[jetSelector] Variable is not ratio: " << var << std::endl;  
-	TLeaf *	    varLeaf = tree->GetLeaf(var.c_str());
-	int	    nJets   = varLeaf->GetNdata();
-	
+	TLeaf *	    varLeaf = tree->GetLeaf(var.c_str());	
 	val = varLeaf->GetValue(jet);
       } // end is  not ratio
+
+      // if we are smearing the values
+      if(isSmear) {
+	float	smear_factor = jetSelection[ii].get("smear_factor", 0).asFloat();	  
+	float	sign	     = smearUp ? 1 : -1;
+	//std::cout << "[jetSelector ] smearing the value:   " << val << " by " << smear_factor << std::endl;        
+	val		     = val * (1 + (sign * smear_factor));
+        //std::cout << "[jetSelector ] new value:   " << val << std::endl;        
+      }
+
       if(debug > 6) std::cout << "[jetSelector ] check if variable falls within min and max  " << std::endl;        
 
       // min and max values for the variable
@@ -247,7 +323,7 @@ std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event) {
       const float   max		   = jetSelection[ii].get("max","ERROR").asFloat();
 
       if(debug > 6) std::cout << "[jetSelector ] min  " << min << " max " << max << " val " <<val << std::endl;        
-      const bool    isLastVariable = (ii == (jetSelection.size() - 1));      
+      const bool    isLastVariable = (ii == (int(jetSelection.size()) - 1));      
       const bool    passCut	   = (val >= min) && (val <= max);
 
       // if it fails a cut, 
@@ -272,19 +348,15 @@ std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event) {
 
   return isTaggedVec;
 } // end getJetTaggedVector
-
-
-
- 
  
 TTree* jetSelector::shallowCopyTree(TTree* oldTree) {
   // dont copy everything
   oldTree->SetBranchStatus("*", 0);  
   // set the individual variables to be kept
-  for(int ii = 0; ii < eventVariablesToSave.size(); ++ii) {
+  for(int ii = 0; ii < int(eventVariablesToSave.size()); ++ii) {
     oldTree->SetBranchStatus(eventVariablesToSave[ii].asString().c_str(), 1);
   } 
-  for(int ii = 0; ii < jetVariablesToSave.size(); ++ii) {
+  for(int ii = 0; ii < int(jetVariablesToSave.size()); ++ii) {
     oldTree->SetBranchStatus(jetVariablesToSave[ii].asString().c_str(), 1);
   } 
   // clone the tree and return
@@ -292,9 +364,29 @@ TTree* jetSelector::shallowCopyTree(TTree* oldTree) {
   return newTree;
 }
 
+ std::pair<int,float> jetSelector::throwPDFToy(const Json::Value & slice, const float & toyVal) {
 
+  // throw a random toy and renomalize
+  int	toy	 = std::rand();
+  float unit_toy = float(toy) / float(RAND_MAX);
 
-// check if a jet is seleceted against the jetSelector
-//bool jetSelector::isJetSelected(const jetCandidate& jet) {
-//  return false;
-//}
+  
+  if(toyVal > 0) unit_toy = toyVal;
+  
+  // proceed through the bins 0 -> MAX and pick the 
+  // number of online tracks where the toy falls
+  float sum = 0;  
+  int nBins = slice.size();
+  for(int bin = 0; bin < nBins; ++bin) {
+    float val   = slice[bin].asDouble();    
+    sum += val;
+    if(sum > unit_toy) { 
+      std::pair<int,float> pair(bin, unit_toy);
+      return pair;
+    }
+  }              
+
+  // this shouldnt happen as long as pdfs are properly normalized
+  std::pair<int,float> bad_pair(-1, -1);
+  return bad_pair;
+}

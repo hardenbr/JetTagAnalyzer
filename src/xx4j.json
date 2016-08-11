@@ -1,6 +1,6 @@
 {"samples": [
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_1000_1000mm",
           "stack": "XXTo4J_1000_1000",
           "path":  "XXTo4J_M-1000_CTau-1000mm_FULL.root",
@@ -11,7 +11,7 @@
           "y_limit_label": 1000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_1000_1mm",
           "stack": "XXTo4J_1000_1",
           "path":  "XXTo4J_M-1000_CTau-1mm_FULL.root",
@@ -22,7 +22,7 @@
           "y_limit_label": 1
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_1000_2000mm",
           "stack": "XXTo4J_1000_2000",
           "path":  "XXTo4J_M-1000_CTau-2000mm_FULL.root",
@@ -33,7 +33,7 @@
           "y_limit_label": 2000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_1000_300mm",
           "stack": "XXTo4J_1000_300",
           "path":  "XXTo4J_M-1000_CTau-300mm_FULL.root",
@@ -44,7 +44,7 @@
           "y_limit_label": 300
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_1000_30mm",
           "stack": "XXTo4J_1000_30",
           "path":  "XXTo4J_M-1000_CTau-30mm_FULL.root",
@@ -55,7 +55,7 @@
           "y_limit_label": 30
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_1000_3mm",
           "stack": "XXTo4J_1000_3",
           "path":  "XXTo4J_M-1000_CTau-3mm_FULL.root",
@@ -66,7 +66,7 @@
           "y_limit_label": 3
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_100_1000mm",
           "stack": "XXTo4J_100_1000",
           "path":  "XXTo4J_M-100_CTau-1000mm_FULL.root",
@@ -77,7 +77,7 @@
           "y_limit_label": 1000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_100_100mm",
           "stack": "XXTo4J_100_100",
           "path":  "XXTo4J_M-100_CTau-100mm_FULL.root",
@@ -88,7 +88,7 @@
           "y_limit_label": 100
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_100_10mm",
           "stack": "XXTo4J_100_10",
           "path":  "XXTo4J_M-100_CTau-10mm_FULL.root",
@@ -99,7 +99,7 @@
           "y_limit_label": 10
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_100_1mm",
           "stack": "XXTo4J_100_1",
           "path":  "XXTo4J_M-100_CTau-1mm_FULL.root",
@@ -110,7 +110,7 @@
           "y_limit_label": 1
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_100_2000mm",
           "stack": "XXTo4J_100_2000",
           "path":  "XXTo4J_M-100_CTau-2000mm_FULL.root",
@@ -121,7 +121,7 @@
           "y_limit_label": 2000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_100_300mm",
           "stack": "XXTo4J_100_300",
           "path":  "XXTo4J_M-100_CTau-300mm_FULL.root",
@@ -132,7 +132,7 @@
           "y_limit_label": 300
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_100_30mm",
           "stack": "XXTo4J_100_30",
           "path":  "XXTo4J_M-100_CTau-30mm_FULL.root",
@@ -143,7 +143,7 @@
           "y_limit_label": 30
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_100_3mm",
           "stack": "XXTo4J_100_3",
           "path":  "XXTo4J_M-100_CTau-3mm_FULL.root",
@@ -154,7 +154,7 @@
           "y_limit_label": 3
        },
 {  
-          "runSample": true,
+"runSample": false,
           "label": "XXTo4J_1500_1000mm",
           "stack": "XXTo4J_1500_1000",
           "path":  "XXTo4J_M-1500_CTau-1000mm_FULL.root",
@@ -165,7 +165,7 @@
           "y_limit_label": 1000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_1500_10mm",
           "stack": "XXTo4J_1500_10",
           "path":  "XXTo4J_M-1500_CTau-10mm_FULL.root",
@@ -176,7 +176,7 @@
           "y_limit_label": 10
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_1500_1mm",
           "stack": "XXTo4J_1500_1",
           "path":  "XXTo4J_M-1500_CTau-1mm_FULL.root",
@@ -187,7 +187,7 @@
           "y_limit_label": 1
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_1500_300mm",
           "stack": "XXTo4J_1500_300",
           "path":  "XXTo4J_M-1500_CTau-300mm_FULL.root",
@@ -198,7 +198,7 @@
           "y_limit_label": 300
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_1500_30mm",
           "stack": "XXTo4J_1500_30",
           "path":  "XXTo4J_M-1500_CTau-30mm_FULL.root",
@@ -209,7 +209,7 @@
           "y_limit_label": 30
        },
 {  
-          "runSample": true,
+"runSample": false,
           "label": "XXTo4J_3000_10mm",
           "stack": "XXTo4J_3000_10",
           "path":  "XXTo4J_M-3000_CTau-10mm_FULL.root",
@@ -220,7 +220,7 @@
           "y_limit_label": 10
        },
 {  
-          "runSample": true,
+"runSample": false,
           "label": "XXTo4J_3000_2000mm",
           "stack": "XXTo4J_3000_2000",
           "path":  "XXTo4J_M-3000_CTau-2000mm_FULL.root",
@@ -231,7 +231,7 @@
           "y_limit_label": 2000
        },
 {  
-          "runSample": true,
+"runSample": false,
           "label": "XXTo4J_3000_300mm",
           "stack": "XXTo4J_3000_300",
           "path":  "XXTo4J_M-3000_CTau-300mm_FULL.root",
@@ -242,7 +242,7 @@
           "y_limit_label": 300
        },
 {  
-          "runSample": true,
+"runSample": false,
           "label": "XXTo4J_3000_30mm",
           "stack": "XXTo4J_3000_30",
           "path":  "XXTo4J_M-3000_CTau-30mm_FULL.root",
@@ -253,7 +253,7 @@
           "y_limit_label": 30
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_300_1000mm",
           "stack": "XXTo4J_300_1000",
           "path":  "XXTo4J_M-300_CTau-1000mm_FULL.root",
@@ -264,7 +264,7 @@
           "y_limit_label": 1000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_300_100mm",
           "stack": "XXTo4J_300_100",
           "path":  "XXTo4J_M-300_CTau-100mm_FULL.root",
@@ -275,7 +275,7 @@
           "y_limit_label": 100
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_300_10mm",
           "stack": "XXTo4J_300_10",
           "path":  "XXTo4J_M-300_CTau-10mm_FULL.root",
@@ -286,7 +286,7 @@
           "y_limit_label": 10
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_300_1mm",
           "stack": "XXTo4J_300_1",
           "path":  "XXTo4J_M-300_CTau-1mm_FULL.root",
@@ -297,7 +297,7 @@
           "y_limit_label": 1
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_300_2000mm",
           "stack": "XXTo4J_300_2000",
           "path":  "XXTo4J_M-300_CTau-2000mm_FULL.root",
@@ -308,7 +308,7 @@
           "y_limit_label": 2000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_300_300mm",
           "stack": "XXTo4J_300_300",
           "path":  "XXTo4J_M-300_CTau-300mm_FULL.root",
@@ -319,7 +319,7 @@
           "y_limit_label": 300
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_300_30mm",
           "stack": "XXTo4J_300_30",
           "path":  "XXTo4J_M-300_CTau-30mm_FULL.root",
@@ -330,7 +330,7 @@
           "y_limit_label": 30
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_300_3mm",
           "stack": "XXTo4J_300_3",
           "path":  "XXTo4J_M-300_CTau-3mm_FULL.root",
@@ -341,7 +341,7 @@
           "y_limit_label": 3
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_500_1000mm",
           "stack": "XXTo4J_500_1000",
           "path":  "XXTo4J_M-500_CTau-1000mm_FULL.root",
@@ -352,7 +352,7 @@
           "y_limit_label": 1000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_500_10mm",
           "stack": "XXTo4J_500_10",
           "path":  "XXTo4J_M-500_CTau-10mm_FULL.root",
@@ -363,7 +363,7 @@
           "y_limit_label": 10
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_500_1mm",
           "stack": "XXTo4J_500_1",
           "path":  "XXTo4J_M-500_CTau-1mm_FULL.root",
@@ -374,7 +374,7 @@
           "y_limit_label": 1
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_500_2000mm",
           "stack": "XXTo4J_500_2000",
           "path":  "XXTo4J_M-500_CTau-2000mm_FULL.root",
@@ -385,7 +385,7 @@
           "y_limit_label": 2000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_500_300mm",
           "stack": "XXTo4J_500_300",
           "path":  "XXTo4J_M-500_CTau-300mm_FULL.root",
@@ -396,7 +396,7 @@
           "y_limit_label": 300
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_500_30mm",
           "stack": "XXTo4J_500_30",
           "path":  "XXTo4J_M-500_CTau-30mm_FULL.root",
@@ -407,7 +407,7 @@
           "y_limit_label": 30
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_50_1000mm",
           "stack": "XXTo4J_50_1000",
           "path":  "XXTo4J_M-50_CTau-1000mm_FULL.root",
@@ -418,7 +418,7 @@
           "y_limit_label": 1000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_50_100mm",
           "stack": "XXTo4J_50_100",
           "path":  "XXTo4J_M-50_CTau-100mm_FULL.root",
@@ -429,7 +429,7 @@
           "y_limit_label": 100
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_50_10mm",
           "stack": "XXTo4J_50_10",
           "path":  "XXTo4J_M-50_CTau-10mm_FULL.root",
@@ -440,7 +440,7 @@
           "y_limit_label": 10
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_50_1mm",
           "stack": "XXTo4J_50_1",
           "path":  "XXTo4J_M-50_CTau-1mm_FULL.root",
@@ -451,7 +451,7 @@
           "y_limit_label": 1
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_50_2000mm",
           "stack": "XXTo4J_50_2000",
           "path":  "XXTo4J_M-50_CTau-2000mm_FULL.root",
@@ -462,7 +462,7 @@
           "y_limit_label": 2000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_50_30mm",
           "stack": "XXTo4J_50_30",
           "path":  "XXTo4J_M-50_CTau-30mm_FULL.root",
@@ -473,7 +473,7 @@
           "y_limit_label": 30
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_50_3mm",
           "stack": "XXTo4J_50_3",
           "path":  "XXTo4J_M-50_CTau-3mm_FULL.root",
@@ -484,7 +484,7 @@
           "y_limit_label": 3
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_700_1000mm",
           "stack": "XXTo4J_700_1000",
           "path":  "XXTo4J_M-700_CTau-1000mm_FULL.root",
@@ -495,7 +495,7 @@
           "y_limit_label": 1000
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_700_100mm",
           "stack": "XXTo4J_700_100",
           "path":  "XXTo4J_M-700_CTau-100mm_FULL.root",
@@ -506,7 +506,7 @@
           "y_limit_label": 100
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_700_10mm",
           "stack": "XXTo4J_700_10",
           "path":  "XXTo4J_M-700_CTau-10mm_FULL.root",
@@ -517,7 +517,7 @@
           "y_limit_label": 10
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_700_1mm",
           "stack": "XXTo4J_700_1",
           "path":  "XXTo4J_M-700_CTau-1mm_FULL.root",
@@ -528,7 +528,7 @@
           "y_limit_label": 1
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_700_300mm",
           "stack": "XXTo4J_700_300",
           "path":  "XXTo4J_M-700_CTau-300mm_FULL.root",
@@ -539,7 +539,7 @@
           "y_limit_label": 300
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_700_30mm",
           "stack": "XXTo4J_700_30",
           "path":  "XXTo4J_M-700_CTau-30mm_FULL.root",
@@ -550,7 +550,7 @@
           "y_limit_label": 30
        },
 {  
-          "runSample": true,
+"runSample": true,
           "label": "XXTo4J_700_3mm",
           "stack": "XXTo4J_700_3",
           "path":  "XXTo4J_M-700_CTau-3mm_FULL.root",

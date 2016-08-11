@@ -6,6 +6,7 @@
 #include <json/json-forwards.h>
 #include <iostream>
 #include <vector>
+#include <random>
 #include "TTree.h"
 #include "TLeaf.h"
 
@@ -24,10 +25,16 @@ class jetSelector {
   // pull out the branches from the ntuples we want to keep
   TTree* shallowCopyTree(TTree* oldTree);
   // get a vector containing the tagging result
-  std::vector<bool> getJetTaggedVector(TTree * tree, int event);
+  std::vector<bool> getJetTaggedVector(TTree * tree, int event, const bool & isSmear, const bool & smearUp );
   std::vector<float> getJetBinningVarVector(TTree * tree, int event);
   bool doesEventPassSelection(TTree * tree, long int event);
-
+  std::vector<std::tuple<int,int,int> > buildOnlineTrackingFromJSON(TTree * tree, 
+								    long int event, 
+								    int lifetime,
+								    const Json::Value & pdfJSON, 
+								    const bool & isPrompt);
+    
+  std::pair<int,float> throwPDFToy(const Json::Value & slice, const float & toVal);
   // accessors
   // -- for the fake rate histograms binning
   std::vector<double> getHistBinning() const { return histBinVals; }

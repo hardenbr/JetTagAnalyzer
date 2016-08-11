@@ -52,7 +52,7 @@ class globalJetProbabilities {
   //float getJetLikelihood(const jetCandidate&);
 
   double getJetFakeProbability(float binVariable, float catVar);
-  std::pair<double, double> getJetFakeProbabilityError(float binVariable, float catVar);
+  const std::pair<double, double> getJetFakeProbabilityError(const float binVariable, const float catVar);
   void printHistStatus();
   void addSignalContamination(TTree*& tree, jetSelector & jetSel, float norm);
   void removeSignalRegion(TTree*& tree, jetSelector & jetSel, bool isContam, float norm);
@@ -102,9 +102,11 @@ class globalJetProbabilities {
   std::string	effHistNameDn;
 
   // configuration params
-  const bool isMC, isSig;
+  int nBins;
+  const bool isMC;
+  const bool isSig;
   double evWeight;
   double xsec;
   const int debug;
-  int nBins;
+
 };

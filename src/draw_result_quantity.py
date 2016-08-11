@@ -27,6 +27,16 @@ parser.add_option( "-f", dest="path",
                   action="store",type="string")
 
 
+parser.add_option( "--ymin", dest="ymin",
+                  help="y axis min ",default=-2,
+                  action="store",type="float")
+
+parser.add_option( "--ymax", dest="ymax",
+                  help="y axis max ",default=2,
+                  action="store",type="float")
+
+
+
 
 rt.gStyle.SetOptStat(0)
 rt.gStyle.SetOptTitle(0)
@@ -151,9 +161,12 @@ if __name__ == '__main__':
         print "looping over value types"
         for type_label in type_labels:
             graph_name = "%s_%s_graph" % (graph_label, type_label)
-            # print "searching for graph name", graph_name
+            print "searching for graph name", graph_name
 
             graph = input_file.Get(graph_name)
+            if graph == None:
+                print "GRAPH NOT FOUND....continuing"
+                continue 
             graph.Print()
             #set the color based on the scheme 
             if graph_label in color_scheme.keys():
@@ -242,6 +255,7 @@ if __name__ == '__main__':
 
     print "x graph labels", x_graph_labels
     for label in x_graph_labels:
+        if (label,"val") not in x_graphs_to_draw.keys(): continue
         graph = x_graphs_to_draw[(label,"val")]
         x_leg.AddEntry(graph, "%s=%s" % (color_scheme["mass_label"], label.split("_")[1]), "pl")
 
@@ -288,7 +302,7 @@ if __name__ == '__main__':
         y_graphs_to_drawDn[key].Print()
         y_graphs_to_drawDn[key].Draw("same" +options.draw_options)
 
-    #y_canvas.SetLogx(1)
+    y_canvas.SetLogx(1)
     y_canvas.SetGridy(1)
     y_canvas.SetGridx(1)
 
@@ -298,6 +312,7 @@ if __name__ == '__main__':
     #y_leg_th = rt.TLegend(.53, .41, .72, .63)
     included = []
     for label in y_graph_labels:
+        if (label,"val") not in y_graphs_to_draw.keys(): continue
         graph = y_graphs_to_draw[(label,"val")]
         y_leg.AddEntry(graph, "c#tau=%s %s" % (label.split("_")[1],options.ctau_label), "pl")
 
@@ -316,12 +331,12 @@ if __name__ == '__main__':
     draw_first_x.SetMinimum(-2)
     draw_first_x.SetMaximum(2)
     draw_first_x.GetXaxis().SetRangeUser(1,2000)
-    draw_first_x.GetYaxis().SetRangeUser(-2,2)
+    draw_first_x.GetYaxis().SetRangeUser(options.ymin, options.ymax)
     x_canvas.Update()
     x_canvas.Modified()
 
     zero_line_x = rt.TLine(1, 0, 2000, 0)
-    zero_line_x.SetLineWidth(3)
+    zero_line_x.SetLineWidth(6)
     #zero_line.SetLineColor(rt.kBlack)
     zero_line_x.Draw("same")
 
@@ -329,16 +344,25 @@ if __name__ == '__main__':
     y_canvas.cd()
     draw_first_y.SetMinimum(-2)
     draw_first_y.SetMaximum(2)
-    draw_first_y.GetXaxis().SetRangeUser(25,3025)
-    draw_first_y.GetYaxis().SetRangeUser(-2,2)
+    draw_first_y.GetXaxis().SetRangeUser(50,3000)
+#    draw_first_y.GetYaxis().SetRangeUser(options.ymin, options.ymax)
+    draw_first_y.GetYaxis().SetRangeUser(-2.5, 2.5)
 
     zero_line_y = rt.TLine(50, 0, 3000, 0)
-    zero_line_y.SetLineWidth(3)
+    zero_line_y.SetLineWidth(6)
     #zero_line.SetLineColor(rt.kBlack)
     zero_line_y.Draw("same")
 
+
+    x_canvas.Update()
+    x_canvas.Modified()
+
+    y_canvas.Update()
+    y_canvas.Modified()
+
     raw_input("RAW INPUT")
 
-    # sig_name = options.sig_list.split(".list")[0] + "_" + options.path.split(".root")[0]
-    # x_canvas.SaveAs("%s_xslice.pdf" % sig_name)
-    # y_canvas.SaveAs("%s_yslice.pdf" % sig_name)
+    sig_name = options.sig_list.split(".list")[0] + "_" + options.path.split(".root")[0]
+    quantity_type = options.path.split(".root")[0]
+    x_canvas.SaveAs("%s_%sxslice.pdf" % (sig_name, quantity_type))
+    y_canvas.SaveAs("%s_%s_yslice.pdf" % (sig_name, quantity_type))

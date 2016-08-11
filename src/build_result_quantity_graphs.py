@@ -58,9 +58,13 @@ class slice_container:
             self.valDn[fixed_label] = []    
         else:
             print "val", result.val, "valUp", result.valUp, "valDn", result.valDn
-            self.val[fixed_label].append((float(float_label), result.val))
-            self.valUp[fixed_label].append((float(float_label), result.valUp))
-            self.valDn[fixed_label].append((float(float_label), result.valDn))        
+
+            if result.valUp != -1:    
+                self.val[fixed_label].append((float(float_label), result.val))
+                self.valUp[fixed_label].append((float(float_label), result.valUp))
+                self.valDn[fixed_label].append((float(float_label), result.valDn))        
+            else:
+                print "NOT INCLUDING VALUE FOR FIXEDLABEL:", fixed_label, "FLOAT LABEL", float_label, "VAL", result.val
         
         self.nPoints += 1
 
@@ -147,15 +151,16 @@ class interpretation:
             print "valListUp", valUp_list
             print "valListDn", valDn_list
 
+            if len(val_list) > 1:
             # build a graph for each key and add it to the graph dictionary
-            val_graph   = rt.TGraph( len(float_var), array.array("d",float_var),  array.array("d", val_list))
-            val_graph.SetName("%s_%s_val_graph" % (slice_name, key))
-            valUp_graph = rt.TGraph( len(float_var), array.array("d",float_var),  array.array("d", valUp_list))
-            valUp_graph.SetName("%s_%s_valUp_graph" % (slice_name, key))
-            valDn_graph = rt.TGraph( len(float_var), array.array("d",float_var),  array.array("d", valDn_list))
-            valDn_graph.SetName("%s_%s_valDn_graph" % (slice_name, key))
+                val_graph   = rt.TGraph( len(float_var), array.array("d",float_var),  array.array("d", val_list))
+                val_graph.SetName("%s_%s_val_graph" % (slice_name, key))
+                valUp_graph = rt.TGraph( len(float_var), array.array("d",float_var),  array.array("d", valUp_list))
+                valUp_graph.SetName("%s_%s_valUp_graph" % (slice_name, key))
+                valDn_graph = rt.TGraph( len(float_var), array.array("d",float_var),  array.array("d", valDn_list))
+                valDn_graph.SetName("%s_%s_valDn_graph" % (slice_name, key))
 
-            # print "\n LOADING DICTIONARY", key
+                # print "\n LOADING DICTIONARY", key
             # print "len float var", len(float_var)
             # print "valList", val_list
             # print "valListUp array", array.array("d", valUp_list)
@@ -163,9 +168,9 @@ class interpretation:
             
             # print "float_var", float_var
 
-            graph_dict[key, "val"]   = val_graph
-            graph_dict[key, "valUp"] = valUp_graph
-            graph_dict[key, "valDn"] = valDn_graph
+                graph_dict[key, "val"]   = val_graph
+                graph_dict[key, "valUp"] = valUp_graph
+                graph_dict[key, "valDn"] = valDn_graph
             
         return graph_dict
 

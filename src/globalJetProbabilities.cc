@@ -24,11 +24,6 @@ globalJetProbabilities::globalJetProbabilities(const std::string& label_,
   effHistNameUp	    = "effHist_" + label + "Up";
   effHistNameDn	    = "effHist_" + label + "Dn";
   
-  int nCat  = probabilities.size();
-  // if(nCat != 1 + 2) {
-  //   std::cout << "[globalJetProbabilities] Only can handle one category for now" << std::endl;
-  //   exit(1);
-  //   }
 
   if(debug > 2) std::cout << "[globalJetProbabilities] Getting first category" << std::endl;
 
@@ -49,9 +44,9 @@ globalJetProbabilities::globalJetProbabilities(const std::string& label_,
 
   // make a vector of the binning
   std::vector<double> binningVec;
-  nBins = binning_json.size() - 1 ;
+  nBins = int(binning_json.size()) - 1 ;
   // build vectors from the arrays
-  for(int bin = 0; bin < binning_json.size(); ++bin) {
+  for(int bin = 0; bin < int(binning_json.size()); ++bin) {
     double binVal = binning_json[bin].asDouble();    
     if(debug > 2) std::cout << binVal << " ";
     binningVec.push_back(binVal);
@@ -225,7 +220,7 @@ Json::Value globalJetProbabilities::getProbabilitiesJSON() {
   Json::Value event;     
 
   // loop over all categories for the fake rate
-  for(int cat = 0; cat < catBinVals.size(); ++cat) {
+  for(int cat = 0; cat < int(catBinVals.size()); ++cat) {
     // build the arrays for the bins and values
     Json::Value binning(Json::arrayValue);
     Json::Value tagged(Json::arrayValue);
@@ -235,7 +230,7 @@ Json::Value globalJetProbabilities::getProbabilitiesJSON() {
     Json::Value effErrDn(Json::arrayValue);    
 
     // loop over bins in the histogram for that category 
-    for(int bin = 0; bin < histBinVals.size(); ++bin) {      
+    for(int bin = 0; bin < int(histBinVals.size()); ++bin) {      
       // histbinvals is the array of the binning and begins with index=0 so use bin
       int   histBin     = bin+1;
       float binVal      = histBinVals[bin];
@@ -300,17 +295,17 @@ double globalJetProbabilities::getJetFakeProbability(float binVariable, float ca
 
 
 // does the lookup in the ratiograph for a specific jet configuration
-std::pair<double, double> globalJetProbabilities::getJetFakeProbabilityError(float binVariable, float catVar) {
+const std::pair<double, double> globalJetProbabilities::getJetFakeProbabilityError(const float binVariable, const float catVar) {
   // find the bin and return the central value
   //  ratioHistEff.Print();
-  if(debug > 5) std::cout << "[globalJetProb] binVariable: " << binVariable << " catVar " << catVar << std::endl;
+  if(debug > 3) std::cout << "[globalJetProb] binVariable: " << binVariable << " catVar " << catVar << std::endl;
   int bin = ratioHistEff.FindBin(binVariable);
-  if(debug > 5) std::cout << "[globalJetProb] bin: " << bin << std::endl;
+  if(debug > 3) std::cout << "[globalJetProb] bin: " << bin << std::endl;
   double errUp = ratioHistEffErrUp.GetBinContent(bin);
   double errDn = ratioHistEffErrDn.GetBinContent(bin);
-  if(debug > 5) std::cout << "[globalJetProb] bin errors up: " << errUp << " error down: "  <<  errDn << std::endl;
+  if(debug > 3) std::cout << "[globalJetProb] bin errors up: " << errUp << " error down: "  <<  errDn << std::endl;
 
-  std::pair<double, double> errors(errUp, errDn);
+  const std::pair<double, double> errors(errUp, errDn);
   return errors;
 }
 
@@ -341,8 +336,6 @@ void globalJetProbabilities::printHistStatus() {
 
 void globalJetProbabilities::removeSignalRegion(TTree*& tree,jetSelector & jetSel, bool isContam, float norm) {
   float applyNorm    = 1;
-  float tagSigNorm   = 1; 
-  float noTagSigNorm = 1; 
 
   // change the norm for the signal injection subtraction
   if(isContam) {
@@ -382,10 +375,9 @@ void globalJetProbabilities::removeSignalRegion(TTree*& tree,jetSelector & jetSe
     if(!eventPassSelection) continue;
     
     // check each jet if it is tagged
-    std::vector<bool> taggedVector = jetSel.getJetTaggedVector(tree, event);
+    std::vector<bool> taggedVector = jetSel.getJetTaggedVector(tree, event, false, false);
 
     // get the total number of taggs in the events
-    const int	nTagBins  = taggedVector.size();
     int		totalTags = 0;
     for(int ii = 0; ii < nJets; ++ii) totalTags += taggedVector[ii] ? 1 : 0;
 
@@ -426,14 +418,29 @@ void globalJetProbabilities::removeSignalRegion(TTree*& tree,jetSelector & jetSe
   allJetHist.Add(&signalRegionAll);
 
   // check for bins that have gone negative
-
-
-  if(debug > 2) {
-    std::cout << "allJets after removal" << allJetHist.Integral() << std::endl;
-    std::cout << "tagJets after removal" << taggedJetHist.Integral() << std::endl;
-  }
-
+  std::cout << "[globalProb] allJets Hist after signal region removal" << allJetHist.Integral() << std::endl;
+  std::cout << "[globalProb] tagJets after signal region removal" << taggedJetHist.Integral() << std::endl;
   
+  //sanity check on the bincontents
+  for(int ii = 1; ii <= taggedJetHist.GetNbinsX(); ++ii ) {
+    float   taggedVal = taggedJetHist.GetBinContent(ii);
+    float   allVal    = allJetHist.GetBinContent(ii);
+
+
+    // remove rounding errors near zero
+    if(taggedVal < 0.001 && allVal < 0.001) {
+      taggedJetHist.SetBinContent(ii,0);
+      allJetHist.SetBinContent(ii,0);
+    }      
+
+
+    if(taggedVal > allVal) {
+      std::cout << "tagged bin: " << taggedVal << " allVal " << allVal << std::endl;
+      std::cout << "tagged val larger? bin: " << ii << "difference: " << taggedVal - allVal << std::endl;
+    }
+  }
+  
+
   // reset the ratio, re-perform the division
   ratioGraph.Set(0);
   ratioGraph.BayesDivide(&taggedJetHist, &allJetHist);
@@ -628,9 +635,7 @@ void globalJetProbabilities::addSignalContamination(TTree*& tree, jetSelector & 
 
     // find and fill the bin in the histogram translation
     int	bin   = ratioHistEff.FindBin(var);    
-    int	binUp = ratioHistEffErrUp.FindBin(var);    
-    int	binDn = ratioHistEffErrDn.FindBin(var);    
-
+    
     ratioHistEff.SetBinContent(bin, eff);    
     ratioHistEffErrDn.SetBinContent(bin, yEffErrorDnVals[ii]);    
     ratioHistEffErrUp.SetBinContent(bin, yEffErrorUpVals[ii]);    

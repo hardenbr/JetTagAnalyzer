@@ -93,7 +93,11 @@ class jetTagAnalyzer {
 
   static const int MAX_JETS = 50;
 
-  int nJets;
-  double * nJetTagProb[MAX_JETS];
-  TH1D * pileupWeightHist;
+  int	    nJets;
+  float	    pdfWeight	     = 0;
+  float	    pdfWeightTotal   = 0;
+  float	    pdfWeightTotalUp = 0;
+  float	    pdfWeightTotalDn = 0;
+  double *  nJetTagProb[MAX_JETS];
+  TH1D *    pileupWeightHist;
 }
