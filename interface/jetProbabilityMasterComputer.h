@@ -23,6 +23,9 @@ class jetProbabilityMasterComputer {
   const std::pair<double, double> getNJetProbabilityError(const std::vector<double> binValues, const std::vector<double> catValues, 
 						  const int & nJetsTagged, const int & nJets);
 
+  const int getNTaggedInConfig(const int & nJets, const std::vector<double> & binVals, const int & config, const double & binVal);
+  const int getNNotTaggedInConfig(const int & nJets, const std::vector<double> & binVals, const int & config, const double & binVal) ;
+  const std::vector<std::pair<double,double>> getNTrackTermsForNTagError(const long int & eventNumber, const int & nTagged);
   // calculates the sum of the digits of the binary literal (corresponding to the number of tags)
   const int getBinaryDigitSum(const long int & num, const int & njets);
 

@@ -57,11 +57,13 @@ class globalJetProbabilities {
   void addSignalContamination(TTree*& tree, jetSelector & jetSel, float norm);
   void removeSignalRegion(TTree*& tree, jetSelector & jetSel, bool isContam, float norm);
 
+
   Json::Value getProbabilitiesJSON();
 
   // acessor
   std::string getBinningVarName() { return binningVar; }
   std::string getCategoryVarName() { return categoryVar; }
+  std::vector<double> getBinningVector() { return histBinVals; }
 
   // accessors
   TGraphAsymmErrors getRatioGraph();

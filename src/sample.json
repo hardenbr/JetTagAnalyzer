@@ -1,90 +1,29 @@
 {"samples": [
-{  
-          "runSample": true,
-          "label": "QCD_1000_1500mm",
-          "stack": "QCD_1000_1500",
-          "path":  "QCD_HT1000to1500_FULL.root",
-          "isMC":  true,
-          "isSig": false,
-          "xsec": 1206,
-          "x_limit_label": 1000,
-          "y_limit_label": 1400
+       { 
+          "runSample": false,   
+           "label": "DATA_JetHT",
+           "stack": "DATA",
+           "path":  "JetHT_FULL.root",
+           "isMC":  false,
+           "isSig": false,
+           "xsec": 1
        },
-{  
-          "runSample": true,
-          "label": "QCD_100_200mm",
-          "stack": "QCD_100_200",
-          "path":  "QCD_HT100to200_FULL.root",
-          "isMC":  true,
-          "isSig": false,
-          "xsec": 27540000,
-          "x_limit_label": 100,
-          "y_limit_label": 200
+       { 
+          "runSample": true,   
+           "label": "DATA_DisplacedJet",
+           "stack": "DATA",
+           "path":  "DisplacedJet_FULL.root",
+           "isMC":  false,
+           "isSig": false,
+           "xsec": 1
        },
-{  
-          "runSample": true,
-          "label": "QCD_1500_2000mm",
-          "stack": "QCD_1500_2000",
-          "path":  "QCD_HT1500to2000_FULL.root",
-          "isMC":  true,
-          "isSig": false,
-          "xsec": 120.4,
-          "x_limit_label": 1500,
-          "y_limit_label": 2000
-       },
-{  
-          "runSample": true,
-          "label": "QCD_2000_Infmm",
-          "stack": "QCD_2000_Inf",
-          "path":  "QCD_HT2000toInf_FULL.root",
-          "isMC":  true,
-          "isSig": false,
-          "xsec": 25.25,
-          "x_limit_label": 2000,
-          "y_limit_label": 9999
-       },
-{  
-          "runSample": true,
-          "label": "QCD_200_300mm",
-          "stack": "QCD_200_300",
-          "path":  "QCD_HT200to300_FULL.root",
-          "isMC":  true,
-          "isSig": false,
-          "xsec": 1717000,
-          "x_limit_label": 200,
-          "y_limit_label": 300
-       },
-{  
-          "runSample": true,
-          "label": "QCD_300_500mm",
-          "stack": "QCD_300_500",
-          "path":  "QCD_HT300to500_FULL.root",
-          "isMC":  true,
-          "isSig": false,
-          "xsec": 351300,
-          "x_limit_label": 300,
-          "y_limit_label": 500
-       },
-{  
-          "runSample": true,
-          "label": "QCD_500_700mm",
-          "stack": "QCD_500_700",
-          "path":  "QCD_HT500to700_FULL.root",
-          "isMC":  true,
-          "isSig": false,
-          "xsec": 31630,
-          "x_limit_label": 500,
-          "y_limit_label": 700
-       },
-{  
-          "runSample": true,
-          "label": "QCD_700_1000mm",
-          "stack": "QCD_700_1000",
-          "path":  "QCD_HT700to1000_FULL.root",
-          "isMC":  true,
-          "isSig": false,
-          "xsec": 6802,
-          "x_limit_label": 700,
-          "y_limit_label": 1000
+       { 
+          "runSample": false,   
+           "label": "SingleIsoMu_FULL",
+           "stack": "DATA",
+           "path":  "SingleIsoMu_FULL.root",
+           "isMC":  false,
+           "isSig": false,
+           "xsec": 1
        }
-]}
+  ] }

@@ -1,7 +1,7 @@
 {
-   "outputFileName":"XX4J",
-   "outputDir": "/afs/cern.ch/work/h/hardenbr/2015/DIJET/JETPROB/AUG11/QCD_NOBS_CONSTRAINT",
-   "debug":-1,
+   "outputFileName":"QCD",
+   "outputDir": "/afs/cern.ch/work/h/hardenbr/2015/DIJET/JETPROB/AUG11/DATA_FAKERATESYS_TEST",
+   "debug":5,
    "signalContam":{ "run" : false, 
                     "label":"XXTo4J_100_10mm",
 		    "norm": 1000},
@@ -11,7 +11,7 @@
    "writeTree": true,		    
    "onlyProbs": false,
    "removeSignalRegionFromProbs" : false,
-   "beginEvent": -1,
-   "endEvent": -1,
-   "maxJetTags": 7
+   "beginEvent": 1,
+   "endEvent": 1,
+   "maxJetTags": 3
 }

@@ -1,5 +1,8 @@
 #include "jetProbabilityMasterComputer.h"
 #include <cmath>
+#include <math.h>
+#include <assert.h>
+#include <algorithm>
 // send a pointer to the tree containing the branches to use for the fake rate computation
 jetProbabilityMasterComputer::jetProbabilityMasterComputer(globalJetProbabilities * jetProb_, TTree * jetTree_, const int & debug_) {
   std::cout << "Begin Constructor probabilities " << std::endl;
@@ -161,6 +164,158 @@ const std::vector<double> jetProbabilityMasterComputer::getNJetTaggedVector(cons
   }
 
   return nTaggedProbVector;
+}
+
+// return the number of tagged jets with the given binVal for a given configuration
+const int jetProbabilityMasterComputer::getNTaggedInConfig(const int & nJets, const std::vector<double> & binVals, const int & config, const double & binVal) {
+  int nTagged = 0;
+  // loop over the position of each binary digit
+  for(int ii = 0; ii < nJets; ++ii) {
+    bool    isTagged	 = (config & pow2[ii]) > 0;
+    bool    isSameBinVal = binVals[ii] == binVal;
+    if (isTagged && isSameBinVal) nTagged++;
+  }
+  return nTagged;
+}
+
+// return the number of tagged jets with the given binVal for a given configuration
+const int jetProbabilityMasterComputer::getNNotTaggedInConfig(const int & nJets, const std::vector<double> & binVals, const int & config, const double & binVal) {
+  int nNotTagged = 0;
+  // loop over the position of each binary digit
+  for(int ii = 0; ii < nJets; ++ii) {
+    bool    isTagged	 = (config & pow2[ii]) > 0;
+    bool    isSameBinVal = binVals[ii] == binVal;
+    if (!isTagged && isSameBinVal) nNotTagged++;
+  }
+  return nNotTagged;
+}
+
+// returns a vector pairs of (ntracks, dP/dq) where q is p(nTracks) = q 
+// and P is the probability of N tags for the event as a function of (p_i's)
+const std::vector<std::pair<double,double>> jetProbabilityMasterComputer::getNTrackTermsForNTagError(const long int & eventNumber, const int & nTagged) {
+  jetTree->GetEntry(eventNumber);
+  if(debug > 3)  std::cout << "\n\n##### BEGINNING NTRACKTERMS ERROR FOR NTAGGED:" << nTagged << "\n\n" <<std::endl;
+
+  std::string	binVar	= jetProb->getBinningVarName(); 
+  std::string	catVar	= jetProb->getCategoryVarName(); 
+
+  // leaves of the variables
+  TLeaf *	binLeaf	= jetTree->GetLeaf(binVar.c_str());
+  TLeaf *	catLeaf	= jetTree->GetLeaf(catVar.c_str());
+  int		nJets   = binLeaf->GetNdata();
+
+  // setup for parsing from the branch
+  std::vector<double> binValues;
+  std::vector<double> catValues;
+  std::vector<double> uniqBinVals;
+
+  // fill an array with the values in the ttree
+  for(int ii = 0; ii < nJets; ++ii) {
+    double binVal = binLeaf->GetValue(ii);
+    double catVal = catLeaf->GetValue(ii);
+    binValues.push_back(binVal);
+    catValues.push_back(catVal);
+    
+    // if the binVal is not already in the unique vector add it
+    if(std::find(uniqBinVals.begin(), uniqBinVals.end(), binVal) == uniqBinVals.end()) {
+      if(binVal != 0) uniqBinVals.push_back(binVal);
+    }    
+  }
+
+  if(debug > 2)  {
+    std:: cout << "[jetProbabilityMaster]  bin vals: ";
+    for(int ii = 0; ii < nJets; ++ii) {
+      std::cout << binValues[ii] << ", ";
+    }
+    std::cout << std::endl;
+    std:: cout << "[jetProbabilityMaster] unique bin vals: ";
+    for(uint ii = 0; ii < uniqBinVals.size(); ++ii) {
+      std::cout << uniqBinVals[ii] << ", ";
+    }
+    std::cout << std::endl;
+  }
+
+  // outputVector containing pairs of (nTracks,dP/dq term) per event where p(nTracks)=q
+  std::vector<std::pair<double,double>> nTrackTermsForNTagError;
+
+  // total number of tagging configurations
+  int nConfig = pow2[nJets] - 1;
+  // loop over the derivative terms (q_i's) 
+  for(int uniqueIndex = 0; uniqueIndex < int(uniqBinVals.size()); ++uniqueIndex) {
+    int	    binValDerivative = uniqBinVals[uniqueIndex];
+    float   derivativeTerm   = 0;
+    double  q_jet	     = jetProb->getJetFakeProbability(binValDerivative, 0);
+
+    std::cout << "----LOOPING CONFIGURATIONS WITH DERIVATIVE d/dq binValDerivative=" << binValDerivative << std::endl;
+    // loop over all tagging configurations
+    for(long int config = 0; config <= nConfig; ++config) { 
+      // make sure we are looking at the correct type of tagging configurations
+      int nTagsInConfig = getBinaryDigitSum(config, nJets);
+      // restrict to the configurations with ntags 
+      if(nTagsInConfig != nTagged) continue;
+      if (debug  >3) { 
+	std::cout << "----CHECKING CONFIGURATION " << config << " BINARY REP:";
+	// write out the binary epression 
+	for(int jet = 00;  jet < nJets; ++jet ) {
+	  int bitval = ((config & pow2[jet]) > 0) ? 1 : 0;
+	  std::cout << bitval << " ";
+	}
+	std::cout << std::endl;
+      }      
+
+      // the number of times q_i is tagged or not tagged in this configuration
+      int   nQTagged    = getNTaggedInConfig(nJets, binValues, config, binValDerivative);
+      int   nQNotTagged = getNNotTaggedInConfig(nJets, binValues, config, binValDerivative);
+
+      if(debug > 3)  std::cout << "[JetProbabilityMaster] nQTagged" << nQTagged << " nQNotTagged " << nQNotTagged << std::endl;
+
+      double subTerm = 1;
+      // build the terms that are not functions of q_i
+      std::cout << "----LOOPING SUBJETS " << std::endl;
+      for(int subjet = 0; subjet < nJets; ++subjet) {
+	double  p_jet	      = jetProb->getJetFakeProbability(binValues[subjet], catValues[subjet]);
+	bool	isTagged      = (config & pow2[subjet]) > 0;
+	// this means it corresponds to q_i
+	bool	notSameBinVal = (binValues[subjet] != binValDerivative);
+	if(debug > 3 ) std::cout << "checking bin val: " << binValues[subjet] << " binvalDerivative " << binValDerivative << " equal?" << notSameBinVal << std::endl;
+	double	nextTerm      = (isTagged ? p_jet : 1 - p_jet);
+	if(debug > 3 && notSameBinVal) {
+	  std::cout << "binVal=" << binValues[subjet] << " p_jet=" << p_jet << " isTagged = " << isTagged << " binValDerivative " << binValDerivative << std::endl;
+	  std::cout << "current subTerm = " << subTerm << " multiplying by  " << nextTerm << std::endl;	  
+	}
+	if(notSameBinVal) subTerm *= nextTerm;
+	if(subTerm == 0) continue;
+	
+      } // finish loop over non q_i terms
+      
+      // add the term for the q_i's
+      float qTerm = 0;
+      
+      if(debug > 3)  std::cout << "[JetProbabilityMaster] q_jet =" << q_jet << std::endl;
+      if(nQTagged > 0) qTerm    +=         nQTagged * std::pow(q_jet, nQTagged - 1) * std::pow(1 - q_jet, nQNotTagged);
+      if(debug > 3)  std::cout << "[JetProbabilityMaster] qTerm Val before not tag =" << qTerm << std::endl;
+      if(nQNotTagged > 0) qTerm += -1 * nQNotTagged * std::pow(1 - q_jet, nQNotTagged - 1) * std::pow(q_jet, nQTagged);
+      if(debug > 3)  std::cout << "[JetProbabilityMaster] qTerm Val final =" << qTerm << std::endl;
+
+      // multiply the q dependent term
+      assert(qTerm != 0 || q_jet == 0); // there must be a q in the definition of P
+      subTerm *= qTerm;
+      if(debug > 3)  std::cout << "[JetProbabilityMaster] subTerm final =" << subTerm << std::endl;
+      // make sure the derivative binVal make sense (less than 100 tracks)
+      assert(binValDerivative < 200);
+      derivativeTerm += subTerm;
+      if(debug > 3)  std::cout << "[JetProbabilityMaster] derivative Term  =" << derivativeTerm << std::endl;
+    }// end loop over configurations 
+    if(debug > 3)  std::cout << "[JetProbabilityMaster]  END CONFIG LOOP" <<  std::endl;
+    
+    if(debug > 3)  std::cout << "[JetProbabilityMaster] derivative Term final  =" << derivativeTerm << std::endl;
+    // build the (ntracks,dP/dq) pair
+    if(debug > 3)  std::cout << "[JetProbabilityMaster]  pushing back result nTracks" << binValDerivative << " termVal = " << derivativeTerm << std::endl;
+    std::pair<double,double> result(binValDerivative, derivativeTerm); 
+    nTrackTermsForNTagError.push_back(result);
+  }
+
+  return nTrackTermsForNTagError;
 }
 
 // helper method for the njet tagged vector. calculates a specific permutation

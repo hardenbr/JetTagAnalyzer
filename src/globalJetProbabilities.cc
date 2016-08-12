@@ -298,12 +298,12 @@ double globalJetProbabilities::getJetFakeProbability(float binVariable, float ca
 const std::pair<double, double> globalJetProbabilities::getJetFakeProbabilityError(const float binVariable, const float catVar) {
   // find the bin and return the central value
   //  ratioHistEff.Print();
-  if(debug > 3) std::cout << "[globalJetProb] binVariable: " << binVariable << " catVar " << catVar << std::endl;
+  if(debug > 5) std::cout << "[globalJetProb] binVariable: " << binVariable << " catVar " << catVar << std::endl;
   int bin = ratioHistEff.FindBin(binVariable);
-  if(debug > 3) std::cout << "[globalJetProb] bin: " << bin << std::endl;
+  if(debug > 5) std::cout << "[globalJetProb] bin: " << bin << std::endl;
   double errUp = ratioHistEffErrUp.GetBinContent(bin);
   double errDn = ratioHistEffErrDn.GetBinContent(bin);
-  if(debug > 3) std::cout << "[globalJetProb] bin errors up: " << errUp << " error down: "  <<  errDn << std::endl;
+  if(debug > 5) std::cout << "[globalJetProb] bin errors up: " << errUp << " error down: "  <<  errDn << std::endl;
 
   const std::pair<double, double> errors(errUp, errDn);
   return errors;
@@ -653,7 +653,6 @@ TH1D globalJetProbabilities::getAllHist() { return allJetHist; }
 TH1D globalJetProbabilities::getCentralEffHist() { return ratioHistEff;}
 TH1D globalJetProbabilities::getCentralEffHistErrUp() { return ratioHistEffErrUp;}
 TH1D globalJetProbabilities::getCentralEffHistErrDn() { return ratioHistEffErrDn;}
-
 // build from preset global Probabilities
 // globalJetProbabilities::globalJetProbabilities(const Json::Value & assignedProb) {  
 // }

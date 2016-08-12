@@ -12,6 +12,7 @@
 #include "TDirectory.h"
 #include "TLegend.h"
 #include "rootlogon.C"
+#include <cmath>
 
 int main(int argc, char* argv[]) {
 
@@ -278,8 +279,7 @@ int main(int argc, char* argv[]) {
     std::string nTagHistPredName	 = label + "_nTagPred";
     std::string nTagHistTruePDFName  	 = label + "_nTagTruePDF";
     std::string nTagHistTrueHLTName	 = label + "_nTagTrueHLT";
-    std::string nTagHistTrueTrackingName = label + "_nTagTrueTracking";
-    
+    std::string nTagHistTrueTrackingName = label + "_nTagTrueTracking";    
 
     // initialize histograms
     TH1D nTagHistTrue(nTagHistTrueName.c_str(), "N Tags Obs.", maxJetTags, 1-.5, maxJetTags+1-.5);
@@ -460,6 +460,16 @@ int main(int argc, char* argv[]) {
     // check the status of all objects in the global probabilities to by applied
     globalJetProbToApply->printHistStatus();
 
+    // now that the global probabilities are set we can set up the fake rate error sum histograms
+    std::vector<TH1D> DPDQ_HIST_VECTOR; 
+    for(int index = 0; index <= maxJetTags; ++index) {
+      std::string histName = "dpdq_" + std::to_string(index); 
+      if(debug > 3) std::cout << "[JetTagAnalyzer] cloning with hist name " << histName << std::endl;
+      TH1D hist = (TH1D)*(TH1D*)globalJetProbToApply->taggedJetHist.Clone(histName.c_str());
+      hist.Reset();
+      DPDQ_HIST_VECTOR.push_back(hist);      
+    }
+
     ///////////////////
     // STEP 2: APPLY THE GLOBAL / LOCAL PROBABILITIES TO THE SAMPLE 
     // EVENT BY EVENT
@@ -526,8 +536,7 @@ int main(int argc, char* argv[]) {
     int		nDisplacedTrackJets   = 0;
     int		nDisplacedTrackJetsUp = 0;
     int		nDisplacedTrackJetsDn = 0;
-
-
+    
     // set the branches for the probabilities
     jetVariableTree->Branch("evNum", &evNum, "evNum/I");
 
@@ -610,7 +619,7 @@ int main(int argc, char* argv[]) {
 
     for(long int event = 0; event < nEvents; ++event) {
       // start at the first event designated
-      if(debug > 5) std::cout << "begin event loop -- event #" << event << " " << std::endl;
+      if(debug > 3) std::cout << "begin event loop -- event #" << event << " " << std::endl;
       if(event < beginEvent) continue; 
       tree->GetEntry(event);
       if(event % 20000 == 0) std::cout << "Processing Event # --- "  << event << std::endl;
@@ -736,13 +745,6 @@ int main(int argc, char* argv[]) {
 	  jetSel.buildOnlineTrackingFromJSON(tree, event, int(y_limit_label), ip_smear_root, true);
 	std::vector<std::tuple<int,int,int> > dispOnline = 
 	  jetSel.buildOnlineTrackingFromJSON(tree, event, int(y_limit_label), ip_smear_root, false);      
-
-	// // keep track of the candidate status
-	// std::vector<bool> isPromVec, isPromUpVec, isPromDnVec;
-	// std::vector<bool> isDispVec, isDispUpVec, isDispDnVec;
-	// std::vector<bool> isPromAndDispVec;//#(50,false);
-	// std::vector<bool> isPromAndDispUpVec;//(50,false);
-	// std::vector<bool> isPromAndDispDnVec;//(50,false);
 	
 	int nJets =  tree->GetLeaf("nCaloJets")->GetValue(0);
 	if (nJets > 13) {
@@ -798,24 +800,6 @@ int main(int argc, char* argv[]) {
 	    nRegDispTracksUp[pdfJet] = nDispUp;
 	    nRegDispTracksDn[pdfJet] = nDispDn;
 
-	    // // for the inclusive trigger candidates
-	    // isPromVec.push_back(isProm);
-	    // isPromUpVec.push_back(isPromUp);
-	    // isPromDnVec.push_back(isPromDn);
-	    // // not used, except for the displace dtrack trigger candidates
-	    // isDispVec.push_back(isDisp);
-	    // isDispUpVec.push_back(isDispUp);
-	    // isDispDnVec.push_back(isDispDn);
-	    // // for the displaced track trigger
-	    // isPromAndDispVec.push_back(isPromAndDisp);
-	    // if (debug > 3) std::cout << " isPromAndDispVec size " << isPromAndDispVec.size() << " pushing back " << isPromAndDisp << std::endl; 
-	    // isPromAndDispUpVec.push_back(isPromAndDispUp);
-	    // isPromAndDispDnVec.push_back(isPromAndDispDn);	    
-
-	    // isPromAndDispVec.resize(nJets);
-	    // isPromAndDispUpVec.resize(nJets);
-	    // isPromAndDispDnVec.resize(nJets);
-
 	    if (debug > 2) std::cout << "count the candidates" << std::endl;	
 	    // inclusive jets
 	    if(isProm) nInclusiveJets++;
@@ -831,25 +815,6 @@ int main(int argc, char* argv[]) {
 	if (debug > 2) std::cout << "leaving else scope" << std::endl;	
       }
       if (debug > 2) std::cout << "leaving isSig scope" << std::endl;	
-	// if (debug > 2) std::cout << "building candidates based on pseduo online tracking" << std::endl;
-	// // determine how many prompt and displaced (HLT) jets there are in an event
-	// for(int cand = 0; cand < nJets; ++cand) {
-	//   // prompt
-	//   if (debug > 2) std::cout << "inclusive candidates " << std::endl;
-	//   if(isPromVec[cand]) nInclusiveJets++;
-	//   if(isPromUpVec[cand]) nInclusiveJetsUp++;
-	//   if(isPromDnVec[cand]) nInclusiveJetsDn++;
-	//   // displaced and prompt
-	//   if (debug > 2) std::cout << "displacedTrack candidates " << std::endl;
-	//   if (debug > 2) std::cout << " isPromAndDispVec size" << isPromAndDispVec.size() << 
-	// 		   "isPromAndDispVecUp" << isPromAndDispUpVec.size() <<  "isPromAndDispVecDn" << isPromAndDispDnVec.size() << std::endl;
-	//   if (debug > 2) std::cout << "counting  candidates " << std::endl;
-	//   if(isPromAndDispVec[cand]) nDisplacedTrackJets++;
-	//   if(isPromAndDispUpVec[cand]) nDisplacedTrackJetsUp++;
-	//   if(isPromAndDispDnVec[cand]) nDisplacedTrackJetsDn++;
-	//   if (debug > 2) std::cout << "candidates complete " << std::endl;
-	//} // end loop over vectors of jet canddiates
-	//} // end if statement for doing tracking PDF smearing
 
       if (debug > 2) std::cout << "Checking probability vector Njets  " << std::endl;
       // get the probability vector for n tagged scenarios
@@ -860,6 +825,7 @@ int main(int argc, char* argv[]) {
       if (debug > 2) std::cout << "Checking probability vector Jets  " << std::endl;
       const std::vector<double>    jetProbabilityVector	    = 	masterJetCalc.getJetProbabilityVector(event);
       // errors +/-
+      
       const std::vector<std::pair<double,double>> nTagProbErrVector = 	masterJetCalc.getNJetErrorVector(event, maxJetTags);
       if (debug > 2) std::cout << "Checking probability vector Jets complete  " << std::endl;
       if(debug > 2) std::cout << "Getting Vector Size for event: "  << event << std::endl;
@@ -880,54 +846,16 @@ int main(int argc, char* argv[]) {
       for(int jj = 0; (jj <= nJets) && (jj <= maxJetTags); ++jj ) {
 	if(debug > 2) std::cout << "Checking for jets jj "  << jj <<  " nJets " << nJets << std::endl;
 	double	prob   = nTagProbVector[jj];
-	double	probUp = nTagProbErrVector[jj].first;
-	double	probDn = nTagProbErrVector[jj].second;
-
 	probNTags[jj]	   = (prob >= 0 && prob <= 1) ? prob * totalWeight : 0;
-	probNTagsErrUp[jj] = (probUp >= 0 && probUp <= 1) ? probUp * totalWeight : 0;
-	probNTagsErrDn[jj] = (probDn >= 0 && probDn <= 1) ? probDn * totalWeight : 0;	
-
-	if(debug> 5)  std::cout << "probTagsErrUp[jj] jj=" << jj << " probUp=" << probUp << std::endl;
-	if(debug> 5)  std::cout << "probTagsErrDn[jj] jj=" << jj << " probUp=" << probUp << std::endl;
-	   
-	double weightErrUp = (probNTags[jj] + probNTagsErrUp[jj]);
-	double weightErrDn = probNTags[jj] - probNTagsErrDn[jj];
-
-	if (weightErrDn < 0) { 
-	  weightErrDn = 0;
-	}
-	if (weightErrUp > 1) {
-	  weightErrUp = 1;
-	}
-
-	// fill the prediciton histogram
-	if(debug> 2) {
-	  std::cout << "Fill histograms with probabilities p = " << 
-	    prob << " pUp =  " << probUp << " pDn" << probDn << 
-	    " weight up " << weightErrUp << " weight dn " << weightErrDn << 
-	    " jj " << jj << std::endl;
-	}
-
-	// check that the weight make sense
-	if(probNTags[jj] > weightErrUp || probNTags[jj] < weightErrDn || weightErrUp < 0 || weightErrDn < 0) {
-	  std::cout << "\nWARNING: NON-SENSICAL ERRORS FOR PROBABILITIES" << std::endl;
-	  std::cout << "probNTags" << probNTags[jj] << std::endl;
-	  std::cout << "weigherrUp" << weightErrUp << std::endl;
-	  std::cout << "weigherrDn" << weightErrDn << std::endl;
-	}
 
 	// fill histograms and add a factor 2 if we are estimating the background using the 2 sample devision
 	if(eventPassSelection) {
 	  if(debug > 2) std::cout << "Event passes selectio nso Fill histograms with probabilities " << std::endl;
 	  if(jj >= 2 && nDivisions == 2 && runChop && removeSignalRegionFromProbs) {
 	    nTagHistPred.Fill(jj, probNTags[jj]*2);
-	    nTagHistPredErrUp.Fill(jj, weightErrUp*2);
-	    nTagHistPredErrDn.Fill(jj, weightErrDn*2);
 	  }
 	  else {
 	    nTagHistPred.Fill(jj, probNTags[jj]);
-	    nTagHistPredErrUp.Fill(jj, weightErrUp);
-	    nTagHistPredErrDn.Fill(jj, weightErrDn);
 	  }
 	} // close if the event passes the event selection
 
@@ -936,10 +864,6 @@ int main(int argc, char* argv[]) {
 	  std::cout << " histogram status " << std::endl;
 	  nTagHistPred.Print();	
 	  std::cout << "\tintegral =  " << nTagHistPred.Integral() << std::endl;
-	  nTagHistPredErrUp.Print();
-	  std::cout << "\tintegral =  " << nTagHistPredErrUp.Integral() << std::endl;
-	  nTagHistPredErrDn.Print();
-	  std::cout << "\tintegral =  " << nTagHistPredErrDn.Integral() << std::endl;
 	}
 
 	if(debug > 5 && nJets > 0) {
@@ -948,9 +872,8 @@ int main(int argc, char* argv[]) {
 	}
 	
 	// get the jet probability
-	if(nJets > 0){
-	  probJTag[jj] = jetProbabilityVector[jj];
-	}
+	if(nJets > 0) probJTag[jj] = jetProbabilityVector[jj];
+
 	if(debug > 3) 	  std::cout << "------Jet loop interation complete---- " << std::endl;
       }
 
@@ -991,7 +914,6 @@ int main(int argc, char* argv[]) {
 	if(eventPassHLT) nTagHistTrueHLT.Fill(nTagged, 1);
 	if(eventPassHLTUp) nTagHistTrueHLTSYSUp.Fill(nTagged, 1);
 	if(eventPassHLTDn) nTagHistTrueHLTSYSDn.Fill(nTagged, 1);	    
-	//nTagHistTrue.Fill(nTagged, totalWeight);
       }
 
       if(debug > 1) std::cout << " -- Number of jets tagged...." << nTagged << std::endl;
@@ -1002,11 +924,94 @@ int main(int argc, char* argv[]) {
 
       // reset the weight back to zero
       nTagWeight[nTagged] = 0;
+
+      if(debug > 3) std::cout << "[JetTagAnalyzer] Begin Building diDerivative Terms " << std::endl;
+      // build the ntag probability errors
+      for(int kk = 1; (kk <= nJets) && (kk <= maxJetTags); ++kk ) {
+	if(debug > 3) std::cout << "[JetTagAnalyzer] performing ntag term kk =" << kk << std::endl;
+	// calculate the dp/dq terms for this number of tags
+	// pair arrives as (nTracks, dP/dq)
+	std::vector<std::pair<double,double>> qiDerivativeTerms = masterJetCalc.getNTrackTermsForNTagError(event, kk);
+
+	if(debug > 3) std::cout << "[JetTagAnalyzer] Accessing associated histogram kk=" << kk << std::endl;
+	// find the histogram corresponding to the ntags calculation
+	TH1D thisHist = DPDQ_HIST_VECTOR[kk];
+	if(debug > 3) thisHist.Print();
+
+	if(debug > 3) std::cout << "[JetTagAnalyzer] qi derivatives size=" << qiDerivativeTerms.size()  << std::endl;
+	// loop over each term and add it into the corresponding histogram in the correct bin
+	for(int term = 0; term < int(qiDerivativeTerms.size()); ++term) {	  
+	  std::pair<double, double> thisPair = qiDerivativeTerms[term];
+	  // bin in the histogram corresponding to the binVal used for q
+	  int			    thisBin  = thisHist.FindBin(thisPair.first);
+	  // current value of the sum
+	  float			    thisVal  = thisHist.GetBinContent(thisBin);
+	  // increment for this event
+	  if(debug > 3) std::cout << "[JetTagAnalyzer] adding derivative term=" << thisPair.second << std::endl;
+	  if(debug > 3) std::cout << "[JetTagAnalyzer] original sum=" << thisVal << " new sum= " <<  thisVal +  thisPair.second << std::endl;
+	  thisHist.SetBinContent(thisBin, thisVal +  thisPair.second);	  	 		  	    
+	}
+      }
+
       if(debug > 2) std::cout << "leaving event loop scope.." << std::endl;
     }
     // //////////////
     // END loop over events in a single sample
     // //////////////
+
+    // //////////////
+    // BEGIN SYSTEMATIC FOR FAKE RATE STATISTICS
+    // //////////////
+
+    // build up the ntag errors (which require a sum over all events)
+    // vectors index by ntags
+    std::vector<double> NTAG_ERROR_UP;
+    std::vector<double> NTAG_ERROR_DN;
+    if(debug > 1) std::cout << "[JetTagAnalyzer] Begin Building Building final error calc for stat syss "  << std::endl;
+    // build the ntag probability errors
+    for(int kk = 0; kk <= maxJetTags; ++kk ) {
+      // histogram containing the dp/dq sums
+      TH1D thisHist = DPDQ_HIST_VECTOR[kk];
+      // a vector of the binning used for the fake rate<
+      
+      // sum over all (dp/dq*sigma_q)
+      float dpdq_sigma_q_sum_up = 0;
+      float dpdq_sigma_q_sum_dn = 0;
+      // check every possible value 
+      //std::cout << "size of hist bin vals" << histBinVals.size() << std::endl;
+      std::cout << "beginning loop on binvals" << std::endl;
+      for(int nTracks = 1; nTracks < 100; ++nTracks){
+	// get the errors for the current bin value
+	int			    binVal = nTracks;
+	int			    bin	   = thisHist.FindBin(nTracks);
+	std::pair<double,double>    errors = globalJetProbToApply->getJetFakeProbabilityError(binVal,0);	
+	// sum the terms in quandrature
+	float binContent = thisHist.GetBinContent(bin);
+	if(debug > 3 && binContent > 0) std::cout << "[JetTagAnalyzer] adding terms "  << std::endl;
+	if(debug > 3 && binContent > 0) std::cout << "[JetTagAnalyzer] q= " << binVal  << " dpdq =  "  << thisHist.GetBinContent(bin) <<  std::endl;
+	dpdq_sigma_q_sum_up += std::pow(binContent * errors.first, 2);
+	dpdq_sigma_q_sum_dn += std::pow(binContent * errors.second, 2);
+      }
+      if(debug > 1) std::cout << "[JetTagAnalyzer] ntags=" << kk << " up error  " << dpdq_sigma_q_sum_up << " dn error " << dpdq_sigma_q_sum_dn << std::endl;
+
+      NTAG_ERROR_UP.push_back(std::sqrt(dpdq_sigma_q_sum_up));
+      NTAG_ERROR_DN.push_back(std::sqrt(dpdq_sigma_q_sum_dn));
+    }// end loop over ntags to compute the fake rate systematic
+    
+    // loop over each tag bin and fill teh error hists
+    for(int kk = 0; kk <= maxJetTags; ++kk ) {      
+      // fill the ntag pred with N_pred - error
+      float pred = nTagHistPred.GetBinContent(kk);
+      float predUp = NTAG_ERROR_UP[kk];
+      float predDn = NTAG_ERROR_DN[kk];
+      
+      nTagHistPredErrUp.SetBinContent(kk, predUp); 
+      nTagHistPredErrDn.SetBinContent(kk, predDn); 
+    }
+
+    // //////////////
+    // END SYSTEMATIC  FOR FAKE RATE STATISTICS
+    // //////////////    
 
     if(debug > 2) std::cout << "checking for signal contamin.." << std::endl;
     // make copies this far that have no inclusion of the contamination histograms
@@ -1261,8 +1266,6 @@ int main(int argc, char* argv[]) {
     nTagHistPred.Write();
     nTagHistPredErrUp.Write();
     nTagHistPredErrDn.Write();
-
-
 
     // write the contamination related histograms
     nTagHistPred_noContam->Write();
