@@ -20,6 +20,7 @@ class globalJetProbabilities {
 				  const double& xsec_, 
 				  TTree*& tree,
 				  jetSelector& jetSel,
+				  const std::string& divideString_,
 				  const int & debug_
 				  );
   
@@ -32,6 +33,7 @@ class globalJetProbabilities {
 				  const double& evWeight_, 
 				  const double& xsec_, 
 				  Json::Value probabilities,
+				  const std::string& divideString_,
 				  const int & debug_
 				  );
 
@@ -103,12 +105,19 @@ class globalJetProbabilities {
   std::string	effHistNameUp;
   std::string	effHistNameDn;
 
+  // string for the division calculation
+  //const std::string divide_string = "b(1,1) mode cl=.683";
+  //const std::string divide_string = "fc  cl=.683";
+  
+
+
   // configuration params
   int nBins;
   const bool isMC;
   const bool isSig;
   double evWeight;
   double xsec;
+  const std::string divideString;
   const int debug;
 
 };

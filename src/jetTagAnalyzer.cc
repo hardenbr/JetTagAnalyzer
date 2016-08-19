@@ -162,8 +162,9 @@ int main(int argc, char* argv[]) {
   bool		runSignalContam		    = run_config_root["signalContam"].get("run",false).asBool(); 
   bool		writeTree		    = run_config_root.get("writeTree",false).asBool(); 
   bool		onlyProbs		    = run_config_root.get("onlyProbs",false).asBool(); 
+  bool		doFRSystematic		    = run_config_root.get("doFRSystematic",false).asBool(); 
   bool		removeSignalRegionFromProbs = run_config_root.get("removeSignalRegionFromProbs",false).asBool(); 
-
+  std::string   divideString                = run_config_root.get("divideString","cp cl=.683").asString();
   std::string	hypotheticalChopProb = outputDir+"/"+"prob" + runChopProbSuffix + ".json";
   if(runChop) {
     std::cout << "Checking for already calculated probabilities for cross validation: " << hypotheticalChopProb << std::endl;
@@ -268,6 +269,9 @@ int main(int argc, char* argv[]) {
     float	    pdfWeightTotalUp = 0;
     float	    pdfWeightTotalDn = 0;
 
+    // running fake rate total per bin index by n tags
+    // std::vector<double> dNdq_sigmaq
+
     // parse the values to be used for the limit calculation (ONLY IF SIGNAL)
     if(isSig) {
       x_limit_label = samples[ss].get("x_limit_label", -999).asFloat();      
@@ -359,7 +363,7 @@ int main(int argc, char* argv[]) {
       if(debug > -1) std::cout << "Probabilities not provided.." << std::endl;
       if(debug > -1) std::cout << "Constructing localProbabilities..." << std::endl;
       // process the sample by constructing the global probabilities
-      globalJetProbabilities * localSampleProb = new globalJetProbabilities(label, stack, isMC, isSig, eventWeight, xsec, tree, jetSel, debug);     
+      globalJetProbabilities * localSampleProb = new globalJetProbabilities(label, stack, isMC, isSig, eventWeight, xsec, tree, jetSel, divideString, debug);     
 
       // subtract the signal region
       if(removeSignalRegionFromProbs) localSampleProb->removeSignalRegion(tree, jetSel, false, 1);
@@ -442,7 +446,7 @@ int main(int argc, char* argv[]) {
     // probaiblities were provided, or previously calculated
     else {
       std::cout << "....Loading JSON Probabilities......." << std::endl;
-      globalJetProbabilities * loadedProbabilities = new globalJetProbabilities(label, stack, isMC, isSig, eventWeight, xsec, globalProb_root, debug);
+      globalJetProbabilities * loadedProbabilities = new globalJetProbabilities(label, stack, isMC, isSig, eventWeight, xsec, globalProb_root, divideString, debug);
       globalJetProbToApply = loadedProbabilities;
 
       outputFile.cd();
@@ -461,12 +465,12 @@ int main(int argc, char* argv[]) {
     globalJetProbToApply->printHistStatus();
 
     // now that the global probabilities are set we can set up the fake rate error sum histograms
-    std::vector<TH1D> DPDQ_HIST_VECTOR; 
+    std::vector<TH1D*> DPDQ_HIST_VECTOR; 
     for(int index = 0; index <= maxJetTags; ++index) {
       std::string histName = "dpdq_" + std::to_string(index); 
       if(debug > 3) std::cout << "[JetTagAnalyzer] cloning with hist name " << histName << std::endl;
-      TH1D hist = (TH1D)*(TH1D*)globalJetProbToApply->taggedJetHist.Clone(histName.c_str());
-      hist.Reset();
+      TH1D * hist = (TH1D*)globalJetProbToApply->taggedJetHist.Clone(histName.c_str());
+      hist->Reset();
       DPDQ_HIST_VECTOR.push_back(hist);      
     }
 
@@ -931,25 +935,27 @@ int main(int argc, char* argv[]) {
 	if(debug > 3) std::cout << "[JetTagAnalyzer] performing ntag term kk =" << kk << std::endl;
 	// calculate the dp/dq terms for this number of tags
 	// pair arrives as (nTracks, dP/dq)
-	std::vector<std::pair<double,double>> qiDerivativeTerms = masterJetCalc.getNTrackTermsForNTagError(event, kk);
+
+	std::vector<std::pair<double,double>> qiDerivativeTerms;
+	if(!isSig && doFRSystematic) qiDerivativeTerms = masterJetCalc.getNTrackTermsForNTagError(event, kk);	
 
 	if(debug > 3) std::cout << "[JetTagAnalyzer] Accessing associated histogram kk=" << kk << std::endl;
 	// find the histogram corresponding to the ntags calculation
-	TH1D thisHist = DPDQ_HIST_VECTOR[kk];
-	if(debug > 3) thisHist.Print();
+	TH1D * thisHist = DPDQ_HIST_VECTOR[kk];
+	if(debug > 3) thisHist->Print();
 
 	if(debug > 3) std::cout << "[JetTagAnalyzer] qi derivatives size=" << qiDerivativeTerms.size()  << std::endl;
 	// loop over each term and add it into the corresponding histogram in the correct bin
 	for(int term = 0; term < int(qiDerivativeTerms.size()); ++term) {	  
 	  std::pair<double, double> thisPair = qiDerivativeTerms[term];
 	  // bin in the histogram corresponding to the binVal used for q
-	  int			    thisBin  = thisHist.FindBin(thisPair.first);
+	  int			    thisBin  = thisHist->FindBin(thisPair.first);
 	  // current value of the sum
-	  float			    thisVal  = thisHist.GetBinContent(thisBin);
+	  float			    thisVal  = thisHist->GetBinContent(thisBin);
 	  // increment for this event
 	  if(debug > 3) std::cout << "[JetTagAnalyzer] adding derivative term=" << thisPair.second << std::endl;
 	  if(debug > 3) std::cout << "[JetTagAnalyzer] original sum=" << thisVal << " new sum= " <<  thisVal +  thisPair.second << std::endl;
-	  thisHist.SetBinContent(thisBin, thisVal +  thisPair.second);	  	 		  	    
+	  thisHist->SetBinContent(thisBin, thisVal +  thisPair.second);	  	 		  	    
 	}
       }
 
@@ -971,7 +977,7 @@ int main(int argc, char* argv[]) {
     // build the ntag probability errors
     for(int kk = 0; kk <= maxJetTags; ++kk ) {
       // histogram containing the dp/dq sums
-      TH1D thisHist = DPDQ_HIST_VECTOR[kk];
+      TH1D * thisHist = DPDQ_HIST_VECTOR[kk];
       // a vector of the binning used for the fake rate<
       
       // sum over all (dp/dq*sigma_q)
@@ -979,20 +985,20 @@ int main(int argc, char* argv[]) {
       float dpdq_sigma_q_sum_dn = 0;
       // check every possible value 
       //std::cout << "size of hist bin vals" << histBinVals.size() << std::endl;
-      std::cout << "beginning loop on binvals" << std::endl;
+      if(debug > 3) std::cout << "beginning loop on binvals" << std::endl;
       for(int nTracks = 1; nTracks < 100; ++nTracks){
 	// get the errors for the current bin value
-	int			    binVal = nTracks;
-	int			    bin	   = thisHist.FindBin(nTracks);
-	std::pair<double,double>    errors = globalJetProbToApply->getJetFakeProbabilityError(binVal,0);	
-	// sum the terms in quandrature
-	float binContent = thisHist.GetBinContent(bin);
+	int			    binVal     = nTracks;
+	int			    bin	       = thisHist->FindBin(nTracks);
+	std::pair<double,double>    errors     = globalJetProbToApply->getJetFakeProbabilityError(binVal,0);	
+	float			    binContent = thisHist->GetBinContent(bin);
+
 	if(debug > 3 && binContent > 0) std::cout << "[JetTagAnalyzer] adding terms "  << std::endl;
-	if(debug > 3 && binContent > 0) std::cout << "[JetTagAnalyzer] q= " << binVal  << " dpdq =  "  << thisHist.GetBinContent(bin) <<  std::endl;
+	if(debug > 3 && binContent > 0) std::cout << "[JetTagAnalyzer] q= " << binVal  << " dpdq=  "  << thisHist->GetBinContent(bin) <<  " q_err_up: " << errors.first <<  " q_err_dn: " << errors.second << std::endl;
 	dpdq_sigma_q_sum_up += std::pow(binContent * errors.first, 2);
 	dpdq_sigma_q_sum_dn += std::pow(binContent * errors.second, 2);
       }
-      if(debug > 1) std::cout << "[JetTagAnalyzer] ntags=" << kk << " up error  " << dpdq_sigma_q_sum_up << " dn error " << dpdq_sigma_q_sum_dn << std::endl;
+      if(debug > 1) std::cout << "[JetTagAnalyzer] ntags=" << kk << " up error  " << std::sqrt(dpdq_sigma_q_sum_up) << " dn error " << std::sqrt(dpdq_sigma_q_sum_dn) << std::endl;
 
       NTAG_ERROR_UP.push_back(std::sqrt(dpdq_sigma_q_sum_up));
       NTAG_ERROR_DN.push_back(std::sqrt(dpdq_sigma_q_sum_dn));
@@ -1280,6 +1286,9 @@ int main(int argc, char* argv[]) {
     nTagHistTrueTrackingSYSDn.Write();    
     nTagHistTruePDFUp.Write();
     nTagHistTruePDFDn.Write();
+
+    // write the histograms used for the sums for the fake rate 
+    for(int kk = 0; kk <= maxJetTags; ++kk) DPDQ_HIST_VECTOR[kk]->Write();
 
     // write out the tree and close 
     if(writeTree) jetVariableTree->Write();

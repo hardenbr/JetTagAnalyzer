@@ -178,16 +178,12 @@ const int jetProbabilityMasterComputer::getNTaggedInConfig(const int & nJets, co
   return nTagged;
 }
 
-// return the number of tagged jets with the given binVal for a given configuration
-const int jetProbabilityMasterComputer::getNNotTaggedInConfig(const int & nJets, const std::vector<double> & binVals, const int & config, const double & binVal) {
-  int nNotTagged = 0;
-  // loop over the position of each binary digit
-  for(int ii = 0; ii < nJets; ++ii) {
-    bool    isTagged	 = (config & pow2[ii]) > 0;
-    bool    isSameBinVal = binVals[ii] == binVal;
-    if (!isTagged && isSameBinVal) nNotTagged++;
+const int jetProbabilityMasterComputer::binValMultiplicity(const std::vector<double> & binVals, const double & binVal) {
+  int sum = 0; 
+  for(int ii = 0; ii < int(binVals.size()); ++ii) {
+    if(binVals[ii] == binVal) sum++;
   }
-  return nNotTagged;
+  return sum;
 }
 
 // returns a vector pairs of (ntracks, dP/dq) where q is p(nTracks) = q 
@@ -243,10 +239,11 @@ const std::vector<std::pair<double,double>> jetProbabilityMasterComputer::getNTr
   // loop over the derivative terms (q_i's) 
   for(int uniqueIndex = 0; uniqueIndex < int(uniqBinVals.size()); ++uniqueIndex) {
     int	    binValDerivative = uniqBinVals[uniqueIndex];
+    int     multiplicity     = binValMultiplicity(binValues, binValDerivative);
     float   derivativeTerm   = 0;
     double  q_jet	     = jetProb->getJetFakeProbability(binValDerivative, 0);
 
-    std::cout << "----LOOPING CONFIGURATIONS WITH DERIVATIVE d/dq binValDerivative=" << binValDerivative << std::endl;
+    if (debug  >3) std::cout << "----LOOPING CONFIGURATIONS WITH DERIVATIVE d/dq binValDerivative=" << binValDerivative << std::endl;
     // loop over all tagging configurations
     for(long int config = 0; config <= nConfig; ++config) { 
       // make sure we are looking at the correct type of tagging configurations
@@ -256,7 +253,7 @@ const std::vector<std::pair<double,double>> jetProbabilityMasterComputer::getNTr
       if (debug  >3) { 
 	std::cout << "----CHECKING CONFIGURATION " << config << " BINARY REP:";
 	// write out the binary epression 
-	for(int jet = 00;  jet < nJets; ++jet ) {
+	for(int jet = 0;  jet < nJets; ++jet ) {
 	  int bitval = ((config & pow2[jet]) > 0) ? 1 : 0;
 	  std::cout << bitval << " ";
 	}
@@ -264,19 +261,24 @@ const std::vector<std::pair<double,double>> jetProbabilityMasterComputer::getNTr
       }      
 
       // the number of times q_i is tagged or not tagged in this configuration
-      int   nQTagged    = getNTaggedInConfig(nJets, binValues, config, binValDerivative);
-      int   nQNotTagged = getNNotTaggedInConfig(nJets, binValues, config, binValDerivative);
+      int   nQTagged    = 0;//getNTaggedInConfig(nJets, binValues, config, binValDerivative);
+      int   nQNotTagged = 0;//multiplicity - nQTagged; 
 
       if(debug > 3)  std::cout << "[JetProbabilityMaster] nQTagged" << nQTagged << " nQNotTagged " << nQNotTagged << std::endl;
 
       double subTerm = 1;
       // build the terms that are not functions of q_i
-      std::cout << "----LOOPING SUBJETS " << std::endl;
+      if(debug >3) std::cout << "----LOOPING SUBJETS " << std::endl;
       for(int subjet = 0; subjet < nJets; ++subjet) {
 	double  p_jet	      = jetProb->getJetFakeProbability(binValues[subjet], catValues[subjet]);
 	bool	isTagged      = (config & pow2[subjet]) > 0;
 	// this means it corresponds to q_i
 	bool	notSameBinVal = (binValues[subjet] != binValDerivative);
+
+	// count the number of times the derivative term appears in the expansion
+	if(!notSameBinVal && isTagged) nQTagged++;
+	if(!notSameBinVal && !isTagged) nQNotTagged++;
+
 	if(debug > 3 ) std::cout << "checking bin val: " << binValues[subjet] << " binvalDerivative " << binValDerivative << " equal?" << notSameBinVal << std::endl;
 	double	nextTerm      = (isTagged ? p_jet : 1 - p_jet);
 	if(debug > 3 && notSameBinVal) {
@@ -290,13 +292,15 @@ const std::vector<std::pair<double,double>> jetProbabilityMasterComputer::getNTr
       
       // add the term for the q_i's
       float qTerm = 0;
-      
+
+      // sanity check before computing the term
+      assert(multiplicity == (nQTagged + nQNotTagged));      
       if(debug > 3)  std::cout << "[JetProbabilityMaster] q_jet =" << q_jet << std::endl;
       if(nQTagged > 0) qTerm    +=         nQTagged * std::pow(q_jet, nQTagged - 1) * std::pow(1 - q_jet, nQNotTagged);
       if(debug > 3)  std::cout << "[JetProbabilityMaster] qTerm Val before not tag =" << qTerm << std::endl;
       if(nQNotTagged > 0) qTerm += -1 * nQNotTagged * std::pow(1 - q_jet, nQNotTagged - 1) * std::pow(q_jet, nQTagged);
       if(debug > 3)  std::cout << "[JetProbabilityMaster] qTerm Val final =" << qTerm << std::endl;
-
+      
       // multiply the q dependent term
       assert(qTerm != 0 || q_jet == 0); // there must be a q in the definition of P
       subTerm *= qTerm;
@@ -306,17 +310,17 @@ const std::vector<std::pair<double,double>> jetProbabilityMasterComputer::getNTr
       derivativeTerm += subTerm;
       if(debug > 3)  std::cout << "[JetProbabilityMaster] derivative Term  =" << derivativeTerm << std::endl;
     }// end loop over configurations 
-    if(debug > 3)  std::cout << "[JetProbabilityMaster]  END CONFIG LOOP" <<  std::endl;
-    
+    if(debug > 3)  std::cout << "[JetProbabilityMaster]  END CONFIG LOOP" <<  std::endl;    
     if(debug > 3)  std::cout << "[JetProbabilityMaster] derivative Term final  =" << derivativeTerm << std::endl;
-    // build the (ntracks,dP/dq) pair
     if(debug > 3)  std::cout << "[JetProbabilityMaster]  pushing back result nTracks" << binValDerivative << " termVal = " << derivativeTerm << std::endl;
+    // build the (ntracks,dP/dq) pair
     std::pair<double,double> result(binValDerivative, derivativeTerm); 
     nTrackTermsForNTagError.push_back(result);
   }
-
+ 
   return nTrackTermsForNTagError;
 }
+    
 
 // helper method for the njet tagged vector. calculates a specific permutation
 const std::pair<double, double> jetProbabilityMasterComputer::getNJetProbabilityError(const std::vector<double> binValues, 

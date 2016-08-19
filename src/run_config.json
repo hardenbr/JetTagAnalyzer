@@ -1,7 +1,7 @@
 {
-   "outputFileName":"QCD",
-   "outputDir": "/afs/cern.ch/work/h/hardenbr/2015/DIJET/JETPROB/AUG11/DATA_FAKERATESYS_TEST",
-   "debug":5,
+   "outputFileName":"DATA",
+   "outputDir": "/afs/cern.ch/work/h/hardenbr/2015/DIJET/JETPROB/AUG18/DATA_FELDMAN",
+   "debug":0,
    "signalContam":{ "run" : false, 
                     "label":"XXTo4J_100_10mm",
 		    "norm": 1000},
@@ -10,8 +10,10 @@
    "applyPUWeight": false,
    "writeTree": true,		    
    "onlyProbs": false,
+   "doFRSystematic": true,
    "removeSignalRegionFromProbs" : false,
-   "beginEvent": 1,
-   "endEvent": 1,
-   "maxJetTags": 3
+   "divideString": "cl=.683 fc" ,	
+   "beginEvent": -1,
+   "endEvent": -1,
+   "maxJetTags": 7
 }
