@@ -157,15 +157,22 @@ int main(int argc, char* argv[]) {
   debug					    = run_config_root.get("debug",0).asInt();
   long int	beginEvent		    = run_config_root.get("beginEvent",0).asInt();
   long int	endEvent		    = run_config_root.get("endEvent",-1).asInt();
+  
   //limit on the number of ntags to compute
-  int		maxJetTags		    = run_config_root.get("maxJetTags",3).asInt(); 
-  bool		runSignalContam		    = run_config_root["signalContam"].get("run",false).asBool(); 
-  bool		writeTree		    = run_config_root.get("writeTree",false).asBool(); 
-  bool		onlyProbs		    = run_config_root.get("onlyProbs",false).asBool(); 
-  bool		doFRSystematic		    = run_config_root.get("doFRSystematic",false).asBool(); 
-  bool		removeSignalRegionFromProbs = run_config_root.get("removeSignalRegionFromProbs",false).asBool(); 
-  std::string   divideString                = run_config_root.get("divideString","cp cl=.683").asString();
-  std::string	hypotheticalChopProb = outputDir+"/"+"prob" + runChopProbSuffix + ".json";
+  int		    maxJetTags			= run_config_root.get("maxJetTags",3).asInt(); 
+  bool		    runSignalContam		= run_config_root["signalContam"].get("run",false).asBool(); 
+  bool		    writeTree			= run_config_root.get("writeTree",false).asBool(); 
+  bool		    keepAllEvents		= run_config_root.get("keepAllEvents",false).asBool(); 
+  bool		    onlyProbs			= run_config_root.get("onlyProbs",false).asBool(); 
+  bool		    doFRSystematic		= run_config_root.get("doFRSystematic",false).asBool(); 
+  bool		    removeSignalRegionFromProbs = run_config_root.get("removeSignalRegionFromProbs",false).asBool(); 
+  std::string	    divideString                = run_config_root.get("divideString","cp cl=.683").asString();
+  std::string	    hypotheticalChopProb	= outputDir+"/"+"prob" + runChopProbSuffix + ".json";
+  // running the PID ID analysis
+  bool		    runFlavorAnal		= run_config_root["flavorAnal"].get("run", false).asBool();
+  static const int  pid1			= run_config_root["flavorAnal"].get("part1", -9999).asInt();
+  static const int  pid2			= run_config_root["flavorAnal"].get("part1", -9999).asInt();
+
   if(runChop) {
     std::cout << "Checking for already calculated probabilities for cross validation: " << hypotheticalChopProb << std::endl;
   }
@@ -261,21 +268,30 @@ int main(int argc, char* argv[]) {
     bool	isMC  = samples[ss].get("isMC", true).asBool();
     bool	isSig = samples[ss].get("isSig", false).asBool();
     double	xsec  = samples[ss].get("xsec", 1).asFloat();
-    float       x_limit_label = 0;
-    float       y_limit_label = 0;
 
+    // declare sample level information
+    float   x_limit_label     = 0;
+    float   y_limit_label     = 0;
+    float   original_lifetime = 0;
+    float   invc	      = 0;
+    float   invc_orig         = 0;
     // running pdf totals
-    float	    pdfWeightTotal   = 0;
-    float	    pdfWeightTotalUp = 0;
-    float	    pdfWeightTotalDn = 0;
-
-    // running fake rate total per bin index by n tags
-    // std::vector<double> dNdq_sigmaq
+    float   pdfWeightTotal    = 0;
+    float   pdfWeightTotalUp  = 0;
+    float   pdfWeightTotalDn  = 0;
+    // run rew_weight
+    bool run_reweight = false; 
 
     // parse the values to be used for the limit calculation (ONLY IF SIGNAL)
     if(isSig) {
-      x_limit_label = samples[ss].get("x_limit_label", -999).asFloat();      
-      y_limit_label = samples[ss].get("y_limit_label", -999).asFloat();      
+      x_limit_label	= samples[ss].get("x_limit_label", -999).asFloat();      
+      y_limit_label	= samples[ss].get("y_limit_label", -999).asFloat(); 
+      original_lifetime = samples[ss].get("original_lifetime", -1).asFloat();      
+      invc		= 1.0 / (y_limit_label / 10.0);
+      invc_orig		= 1.0 / (original_lifetime / 10.0);
+      run_reweight	= (original_lifetime != y_limit_label) && (original_lifetime > 0);
+      if(run_reweight) std::cout << "\n ======== RUNNING REWEIGHT ========= \n " << original_lifetime << " to " << 
+			 y_limit_label << std::endl;
     }
 
     // build  names for tagging histograms  based on the label
@@ -332,7 +348,8 @@ int main(int argc, char* argv[]) {
     if(debug > 3) std::cout << "Getting the tree of the file....." << std::endl;
     TTree * tree       = (TTree*)(thisFile.Get(treeName.c_str()));    
     TTree * caloHTTree = (TTree*)(thisFile.Get(treeName.c_str()));    
-
+    TTree * genTree    = (TTree*)thisFile.Get("genp");    
+				  
     std::string contamPath;
 
     double  total_processed	  = tree->GetEntries();
@@ -354,10 +371,36 @@ int main(int argc, char* argv[]) {
     }    
 
     // First get some global information about the sample
-    int	    nPassEventSelection	  = 0;
+    int	    nPassEventSelection   = 0;
     int	    nPassTriggerSelection = 0;
+    int     nPassPID              = 0;				  
+    int	    nPass2Tags		  = 0;
+    int	    nPass2TagsPlusTrigger = 0;
     double  eventWeight		  = xsec / total_processed;
-    double  totalWeight = 1;    
+    double  totalWeight		  = 1;    
+    float   ctau0Weight           = 1;
+    float   ctau0WeightSum        = 1;
+
+
+    // Calculate the ctau0 weight Sum
+    if(isSig && run_reweight) {
+      std::cout << "\\n Running Lifetime Re-Weighting from:" << original_lifetime << " to " << 
+	y_limit_label << std::endl;
+
+      float constant		= invc - invc_orig; 
+      std::string weight_string = "(exp(-1 * (" + std::to_string(constant) + "* genMom1CTau0 + " 
+	+ std::to_string(constant) + "* genMom2CTau0)))";
+      // draw the hist
+      std::cout << " reWeighting draw string: " << weight_string << std::endl;
+      
+      std::string   histName   = "ctau0WeightHist_from" + std::to_string(original_lifetime) + "_to" + std::to_string(y_limit_label);
+      tree->Draw(("eventCaloHT>>"+histName).c_str(), weight_string.c_str(), "goff");
+      TH1F *	    weightHist = (TH1F*)gDirectory->Get(histName.c_str());
+      // the total sum of weights for normalization
+      ctau0WeightSum	       = float(total_processed) / weightHist->Integral();            
+    }
+
+
     // is globalProbabilities were not computed, produce them for each sample
     if(!probProvided) {
       if(debug > -1) std::cout << "Probabilities not provided.." << std::endl;
@@ -523,6 +566,9 @@ int main(int argc, char* argv[]) {
     int   isTaggedUp[100];
     int   isTaggedDn[100];
 
+    // particleIDs
+    int pid[4];
+
     // event indexed / flat number
     int		nTagged		      = 0;
     int		nTaggedUp	      = 0;
@@ -543,7 +589,7 @@ int main(int argc, char* argv[]) {
     
     // set the branches for the probabilities
     jetVariableTree->Branch("evNum", &evNum, "evNum/I");
-
+    jetVariableTree->Branch("pid", &pid, "pid[4]/I");
     jetVariableTree->Branch("nCat", &nCat, "nCat/I");
     jetVariableTree->Branch("index", &nJetTagArray, "index[nCat]/I");
     jetVariableTree->Branch("nTagWeight", &nTagWeight, "nTagWeight[nCat]/I");
@@ -592,7 +638,8 @@ int main(int argc, char* argv[]) {
     // event level variables
     jetVariableTree->Branch("caloHT", &caloHT, "caloHT/F");
     jetVariableTree->Branch("leadingJetPt", &leadingJetPt, "leadingJetPt/F");
-    jetVariableTree->Branch("subLeadingJetPt", &subLeadingJetPt, "subLeadingJetPt/F");
+    jetVariableTree->Branch("subLeadingJetPt", &subLeadingJetPt, "subLeadingJetPt/F");    
+
         
     if(debug > -1) std::cout << "Initializing master probability calculator  " << std::endl;
     // construct the master jet probability calculator to do the n tag calculations
@@ -604,18 +651,22 @@ int main(int argc, char* argv[]) {
     int nEvents = tree->GetEntries();
     // fill the number of events passing the trigger
 
-    nPassTriggerSelection = tree->GetEntries((globalJetProbToApply->triggerCutOnlyString).c_str());
+    //nPassTriggerSelection = tree->GetEntries((globalJetProbToApply->triggerCutOnlyString).c_str());
 
     std::cout << "\n TOTAL NUMBER OF EVENTS TO PROCESS: " << nEvents << std::endl;
 
     // add variables for determining the event rate
     jetVariableTree->Branch("eventWeight", &eventWeight, "eventWeight/D");
+    jetVariableTree->Branch("ctau0Weight", &ctau0Weight, "ctau0Weight/F");
     jetVariableTree->Branch("puWeight", &puWeight, "puWeight/F");
     jetVariableTree->Branch("xsec", &xsec, "xsec/D");
     jetVariableTree->Branch("eventsAnal", &total_processed, "eventsAnal/D");
+    jetVariableTree->Branch("eventsPassPID", &nPassPID, "eventsPassPID/D");
     jetVariableTree->Branch("eventsInFile", &nEvents, "eventsInFile/I");
     jetVariableTree->Branch("eventsPassingSel", &nPassEventSelection, "eventsPassingSel/I");      
+    jetVariableTree->Branch("eventsWith2Tags", &nPass2Tags, "eventsWith2Tags/I");      
     jetVariableTree->Branch("eventsPassingTrigger", &nPassTriggerSelection, "eventsPassingTrigger/I");      
+
 
     if(endEvent > 0 && endEvent+1 < nEvents) nEvents = endEvent+1;
     if(onlyProbs) nEvents = 0;
@@ -626,16 +677,42 @@ int main(int argc, char* argv[]) {
       if(debug > 3) std::cout << "begin event loop -- event #" << event << " " << std::endl;
       if(event < beginEvent) continue; 
       tree->GetEntry(event);
+      genTree->GetEntry(event);
       if(event % 20000 == 0) std::cout << "Processing Event # --- "  << event << std::endl;
       if(event % 1000 == 0 && isSig) std::cout << "Processing Signal Event # --- "  << event << std::endl;
       // check the index matches for the validation sample and that the kinematic / trigger requirements are satisfied
       int   evNum		= tree->GetLeaf("evNum")->GetValue(0);
       bool  passValidationIndex	= (evNum % nDivisions == valiIndex) || !runChop;    // is the correct validation sample or no chop
+      bool  passPID             = true;
+
 
       // speed up when we are running pulls
       // no need to calculate the number of tags if we are performing a chop with nDiv > 2
       // because we are not subtracting the signal region from the probabilities
       if(nDivisions > 2 && runChop && !passValidationIndex) continue;
+
+      // if we are running the falvor analysis check for the two particles
+      if(runFlavorAnal) passPID  = jetSel.doesEventPassPDGID(genTree, event, pid1, pid2);     
+
+      // only analyze events with the correct PID content
+      if(!passPID) continue; 
+      nPassPID++;
+      // store the pids for the babies
+      for(int gg = 0; gg <= 4; ++gg) {
+	TLeaf * pidLeaf = genTree->GetLeaf("genPartPID");
+	pid[gg] = pidLeaf->GetValue(gg);
+      }
+
+      float ctau0Gen1 = -1;
+      float ctau0Gen2 = -1;
+      if(isSig) {
+	ctau0Gen1 = tree->GetLeaf("genMom1CTau0")->GetValue(0);
+	ctau0Gen2 = tree->GetLeaf("genMom2CTau0")->GetValue(0);
+      }
+
+      // derive the weight for the event including normalization
+      float constant		= invc - invc_orig;
+      if(run_reweight) ctau0Weight = exp(-1 * constant * (ctau0Gen1 +  ctau0Gen2)) * ctau0WeightSum;
 
       // Calculate the number of tagged jets
       if(debug > 2) std::cout << "Getting the nTagged Jets Vector.." << std::endl;
@@ -683,9 +760,11 @@ int main(int argc, char* argv[]) {
 	isTaggedUp[jj] = taggedVectorUp[jj] ? 1 : 0;
 	isTaggedDn[jj] = taggedVectorDn[jj] ? 1 : 0;
       }
-      
+
+
       // is in the signal region for <= 2 divisions
       bool  passSignalTagRegion		= (nTagged >= 2 && nDivisions <= 2);  
+      bool  passTriggers                = jetSel.doesEventPassTriggers(tree, event);
       // passes the trigger and kinematic requirements
       bool  eventPassKinematicSelection = jetSel.doesEventPassSelection(tree, event);
       // two ways to get into the validation sample (signal region or correct validation index)
@@ -693,7 +772,9 @@ int main(int argc, char* argv[]) {
  
       // when we use 1 or 2 divisions, keep the full signal region       
       if(eventPassSelection) nPassEventSelection++;	
-
+      if(nTagged >= 2) nPass2Tags++; 
+      if(passTriggers) nPassTriggerSelection++;
+      if(nTagged >= 2 && passTriggers) nPass2TagsPlusTrigger++; 
       if(debug > 2) std::cout << "Event passes event selection?? "  << eventPassSelection << std::endl;
       evNum = event;
 
@@ -751,10 +832,7 @@ int main(int argc, char* argv[]) {
 	  jetSel.buildOnlineTrackingFromJSON(tree, event, int(y_limit_label), ip_smear_root, false);      
 	
 	int nJets =  tree->GetLeaf("nCaloJets")->GetValue(0);
-	if (nJets > 13) {
-	  //std::cout << "TOO MANY JETS CONTINUE" << std::endl;
-	  continue; 
-	}
+
 	if (debug > 2) std::cout << "loop over jets for online tracking" << std::endl;	
 	// check the smearing is consitent in size
 	if(promOnline.size() != dispOnline.size()) {
@@ -849,8 +927,8 @@ int main(int argc, char* argv[]) {
       // look at up to maxJetTags
       for(int jj = 0; (jj <= nJets) && (jj <= maxJetTags); ++jj ) {
 	if(debug > 2) std::cout << "Checking for jets jj "  << jj <<  " nJets " << nJets << std::endl;
-	double	prob   = nTagProbVector[jj];
-	probNTags[jj]	   = (prob >= 0 && prob <= 1) ? prob * totalWeight : 0;
+	double	prob  = nTagProbVector[jj];
+	probNTags[jj] = (prob >= 0 && prob <= 1) ? prob * totalWeight : 0;
 
 	// fill histograms and add a factor 2 if we are estimating the background using the 2 sample devision
 	if(eventPassSelection) {
@@ -885,16 +963,16 @@ int main(int argc, char* argv[]) {
       nTagWeight[nTagged] = 1;
       // fill the histogram
       if(eventPassSelection) { 
-	nTagHistTrue.Fill(nTagged, 1);	
-	nTagHistTruePDFUp.Fill(nTagged, (1 + pdfWeight));
-	nTagHistTruePDFDn.Fill(nTagged, (1 - pdfWeight));
+	nTagHistTrue.Fill(nTagged, ctau0Weight);	
+	nTagHistTruePDFUp.Fill(nTagged, (1 + pdfWeight)*ctau0Weight);
+	nTagHistTruePDFDn.Fill(nTagged, (1 - pdfWeight)*ctau0Weight);
       }
 
       if(isSig) {
 	// counts from the smeared tagging systematic
 	if(eventPassSelection) {
-	  nTagHistTrueTrackingSYSUp.Fill(nTaggedUp, 1);
-	  nTagHistTrueTrackingSYSDn.Fill(nTaggedDn, 1);
+	  nTagHistTrueTrackingSYSUp.Fill(nTaggedUp, ctau0Weight);
+	  nTagHistTrueTrackingSYSDn.Fill(nTaggedDn, ctau0Weight);
 	}
 
 	// build the trigger matching conditions explicitly 
@@ -915,16 +993,16 @@ int main(int argc, char* argv[]) {
 	bool eventPassHLTDn = passInclusiveDn || passDisplacedDn;
 	
 	// fill the histograms
-	if(eventPassHLT) nTagHistTrueHLT.Fill(nTagged, 1);
-	if(eventPassHLTUp) nTagHistTrueHLTSYSUp.Fill(nTagged, 1);
-	if(eventPassHLTDn) nTagHistTrueHLTSYSDn.Fill(nTagged, 1);	    
+	if(eventPassHLT) nTagHistTrueHLT.Fill(nTagged, ctau0Weight);
+	if(eventPassHLTUp) nTagHistTrueHLTSYSUp.Fill(nTagged, ctau0Weight);
+	if(eventPassHLTDn) nTagHistTrueHLTSYSDn.Fill(nTagged, ctau0Weight);	    
       }
 
       if(debug > 1) std::cout << " -- Number of jets tagged...." << nTagged << std::endl;
 
       // fill the Tree
       if(debug > 2) std::cout << "Filling the Tree.." << std::endl;
-      if(writeTree && eventPassSelection) jetVariableTree->Fill();
+      if((writeTree && eventPassSelection) || keepAllEvents) jetVariableTree->Fill();
 
       // reset the weight back to zero
       nTagWeight[nTagged] = 0;
@@ -964,56 +1042,6 @@ int main(int argc, char* argv[]) {
     // //////////////
     // END loop over events in a single sample
     // //////////////
-
-    // //////////////
-    // BEGIN SYSTEMATIC FOR FAKE RATE STATISTICS
-    // //////////////
-
-    // build up the ntag errors (which require a sum over all events)
-    // vectors index by ntags
-    std::vector<double> NTAG_ERROR_UP;
-    std::vector<double> NTAG_ERROR_DN;
-    if(debug > 1) std::cout << "[JetTagAnalyzer] Begin Building Building final error calc for stat syss "  << std::endl;
-    // build the ntag probability errors
-    for(int kk = 0; kk <= maxJetTags; ++kk ) {
-      // histogram containing the dp/dq sums
-      TH1D * thisHist = DPDQ_HIST_VECTOR[kk];
-      // a vector of the binning used for the fake rate<
-      
-      // sum over all (dp/dq*sigma_q)
-      float dpdq_sigma_q_sum_up = 0;
-      float dpdq_sigma_q_sum_dn = 0;
-      // check every possible value 
-      //std::cout << "size of hist bin vals" << histBinVals.size() << std::endl;
-      if(debug > 3) std::cout << "beginning loop on binvals" << std::endl;
-      for(int nTracks = 1; nTracks < 100; ++nTracks){
-	// get the errors for the current bin value
-	int			    binVal     = nTracks;
-	int			    bin	       = thisHist->FindBin(nTracks);
-	std::pair<double,double>    errors     = globalJetProbToApply->getJetFakeProbabilityError(binVal,0);	
-	float			    binContent = thisHist->GetBinContent(bin);
-
-	if(debug > 3 && binContent > 0) std::cout << "[JetTagAnalyzer] adding terms "  << std::endl;
-	if(debug > 3 && binContent > 0) std::cout << "[JetTagAnalyzer] q= " << binVal  << " dpdq=  "  << thisHist->GetBinContent(bin) <<  " q_err_up: " << errors.first <<  " q_err_dn: " << errors.second << std::endl;
-	dpdq_sigma_q_sum_up += std::pow(binContent * errors.first, 2);
-	dpdq_sigma_q_sum_dn += std::pow(binContent * errors.second, 2);
-      }
-      if(debug > 1) std::cout << "[JetTagAnalyzer] ntags=" << kk << " up error  " << std::sqrt(dpdq_sigma_q_sum_up) << " dn error " << std::sqrt(dpdq_sigma_q_sum_dn) << std::endl;
-
-      NTAG_ERROR_UP.push_back(std::sqrt(dpdq_sigma_q_sum_up));
-      NTAG_ERROR_DN.push_back(std::sqrt(dpdq_sigma_q_sum_dn));
-    }// end loop over ntags to compute the fake rate systematic
-    
-    // loop over each tag bin and fill teh error hists
-    for(int kk = 0; kk <= maxJetTags; ++kk ) {      
-      // fill the ntag pred with N_pred - error
-      float pred = nTagHistPred.GetBinContent(kk);
-      float predUp = NTAG_ERROR_UP[kk];
-      float predDn = NTAG_ERROR_DN[kk];
-      
-      nTagHistPredErrUp.SetBinContent(kk, predUp); 
-      nTagHistPredErrDn.SetBinContent(kk, predDn); 
-    }
 
     // //////////////
     // END SYSTEMATIC  FOR FAKE RATE STATISTICS
@@ -1061,16 +1089,20 @@ int main(int argc, char* argv[]) {
 	// get the actual number of tags per event
 	std::vector<bool>   taggedVector   = jetSel.getJetTaggedVector(contamTree, event, false, false);      
 	int		    nJets	   = contamTree->GetLeaf("nCaloJets")->GetValue(0);	
-
 	int nTagged   = 0;
 
-	// loop over the various possibilities of jet tags up to max tags
+	// loop over the various possibilities of jet tags up to max tags and count the taggs 
 	for(int jj = 0; (jj <= nJets) && (jj <= maxJetTags); ++jj ) {
-	  if(debug > 2) std::cout << "[CONTAMINATION] Checking for jets jj "  << jj <<  " nJets " << nJets << std::endl;
 	  if (nJets == 0) break;
-	  // contamination only
 	  if(taggedVector[jj]) nTagged++;
 	} // loop over the possible number of jets in the event
+
+	// include the contribution to the prediction from the signal 
+	// but only the events with one tag
+	for(int jj = 0; (jj <= nJets) && (jj <= maxJetTags) && nTagged < 2; ++jj ) {
+	  nTagHistPred.Fill(jj, scale_factor * nTagProbVector[jj]);
+	} // loop over the possible number of jets in the event
+
 
 	// check the index matches for the validation sample and that the kinematic / trigger requirements are satisfied
 	bool	passValidationIndex	     = (int(event) % nDivisions == valiIndex) || !runChop;   // is the correct validation sample or not running chop
@@ -1084,10 +1116,61 @@ int main(int argc, char* argv[]) {
 	
 	// fill the number taged for the (samp + contam) and contam only
 	nTagHistTrue.Fill(nTagged, scale_factor);
+
 	nTagHistTrue_contam->Fill(nTagged, scale_factor);    
 
       } // loop over events in the contamination sample       
     } // if statement closing if we are running the contamination study
+
+    // //////////////
+    // BUILD THE TOTAL ERROR FOR THE FAKE RATE STATISTICS
+    // //////////////    
+
+    // build up the ntag errors (which require a sum over all events)
+    // vectors index by ntags
+    std::vector<double> NTAG_ERROR_UP;
+    std::vector<double> NTAG_ERROR_DN;
+    if(debug > 1) std::cout << "[JetTagAnalyzer] Begin Building Building final error calc for stat syss "  << std::endl;
+    // build the ntag probability errors
+    for(int kk = 0; kk <= maxJetTags; ++kk ) {
+      // histogram containing the dp/dq sums
+      TH1D * thisHist = DPDQ_HIST_VECTOR[kk];
+      // a vector of the binning used for the fake rate<
+      
+      // sum over all (dp/dq*sigma_q)
+      float dpdq_sigma_q_sum_up = 0;
+      float dpdq_sigma_q_sum_dn = 0;
+      // check every possible value 
+      //std::cout << "size of hist bin vals" << histBinVals.size() << std::endl;
+      if(debug > 3) std::cout << "beginning loop on binvals" << std::endl;
+      for(int nTracks = 1; nTracks < 100; ++nTracks){
+	// get the errors for the current bin value
+	int			    binVal     = nTracks;
+	int			    bin	       = thisHist->FindBin(nTracks);
+	std::pair<double,double>    errors     = globalJetProbToApply->getJetFakeProbabilityError(binVal,0);	
+	float			    binContent = thisHist->GetBinContent(bin);
+
+	if(debug > 3 && binContent > 0) std::cout << "[JetTagAnalyzer] adding terms "  << std::endl;
+	if(debug > 3 && binContent > 0) std::cout << "[JetTagAnalyzer] q= " << binVal  << " dpdq=  "  << thisHist->GetBinContent(bin) <<  " q_err_up: " << errors.first <<  " q_err_dn: " << errors.second << std::endl;
+	dpdq_sigma_q_sum_up += std::pow(binContent * errors.first, 2);
+	dpdq_sigma_q_sum_dn += std::pow(binContent * errors.second, 2);
+      }
+      if(debug > 1) std::cout << "[JetTagAnalyzer] ntags=" << kk << " up error  " << std::sqrt(dpdq_sigma_q_sum_up) << " dn error " << std::sqrt(dpdq_sigma_q_sum_dn) << std::endl;
+
+      NTAG_ERROR_UP.push_back(std::sqrt(dpdq_sigma_q_sum_up));
+      NTAG_ERROR_DN.push_back(std::sqrt(dpdq_sigma_q_sum_dn));
+    }// end loop over ntags to compute the fake rate systematic
+    
+    // loop over each tag bin and fill teh error hists
+    for(int kk = 0; kk <= maxJetTags; ++kk ) {      
+      // fill the ntag pred with N_pred - error
+      float pred = nTagHistPred.GetBinContent(kk);
+      float predUp = NTAG_ERROR_UP[kk];
+      float predDn = NTAG_ERROR_DN[kk];
+      
+      nTagHistPredErrUp.SetBinContent(kk, pred+predUp); 
+      nTagHistPredErrDn.SetBinContent(kk, pred-predDn); 
+    }
 
     // --------------------------
     // write a json result containing the n-tags and systematic variations 
@@ -1166,9 +1249,15 @@ int main(int argc, char* argv[]) {
     resultJSON["isSignal"]			      = isSig ? "True" : "False";
     resultJSON["x_limit_label"]			      = x_limit_label;
     resultJSON["y_limit_label"]			      = y_limit_label;
+    resultJSON["run_reweight"]			      = run_reweight; 
+    resultJSON["original_lifetime"]		      = original_lifetime; 
+    resultJSON["ctau0WeightSum"]		      = ctau0WeightSum; 
     // statistics about events analysed
     resultJSON["nEventsAnalyzed"]		      = total_processed;
+    resultJSON["nEventsPassPID"]		      = nPassPID;
     resultJSON["nEventsInFile"]			      = nEvents;
+    resultJSON["nEvents2TagsNoSel"]		      = nPass2Tags;
+    resultJSON["nEvents2TagsPlusTrigger"]             = nPass2TagsPlusTrigger;
     resultJSON["nEventsPassSelection"]		      = nPassEventSelection;
     resultJSON["nEventsPassTriggerSelection"]	      = nPassTriggerSelection;
     resultJSON["nTagTrue"]			      = nTagTrue;

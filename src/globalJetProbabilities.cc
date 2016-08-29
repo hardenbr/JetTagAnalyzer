@@ -375,7 +375,9 @@ void globalJetProbabilities::removeSignalRegion(TTree*& tree,jetSelector & jetSe
     int evNum = tree->GetLeaf("evNum")->GetValue(0);
 
     // make sure the event passes the event selection with the correct event index
-    bool passProbIndex = (evNum % jetSel.nDivisions == jetSel.probIndex);
+    // or we dont care about the event index because we aren't doing cross validaiton (isContam or divisions =1)
+    bool passProbIndex = (evNum % jetSel.nDivisions == jetSel.probIndex) || jetSel.nDivisions == 1 || isContam;
+    // if we dont pass the index check and we are, dont use for this probability sample
     if(!passProbIndex) continue; 
 
     // check the kinematic selection is satisfied
@@ -386,7 +388,7 @@ void globalJetProbabilities::removeSignalRegion(TTree*& tree,jetSelector & jetSe
     std::vector<bool> taggedVector = jetSel.getJetTaggedVector(tree, event, false, false);
 
     // get the total number of taggs in the events
-    int		totalTags = 0;
+    int	 totalTags = 0;
     for(int ii = 0; ii < nJets; ++ii) totalTags += taggedVector[ii] ? 1 : 0;
 
     // skip all events not in the signal region
@@ -414,12 +416,11 @@ void globalJetProbabilities::removeSignalRegion(TTree*& tree,jetSelector & jetSe
   signalRegionTagged.Print();
 
   // check the size of the removal
-  if(debug > 2) {
-    std::cout << "[globalProbabilities] N Jets being removed from allJetsHist: " << signalRegionAll.Integral() << std::endl;
-    std::cout << "[globalProbabilities] N jets being removed from  tagJetHist: " << signalRegionTagged.Integral() << std::endl;
-    std::cout << "allJets before removal: " << allJetHist.Integral() << std::endl;
-    std::cout << "tagJets before removal: " << taggedJetHist.Integral() << std::endl;
-  }
+  std::cout << "[globalProbabilities] N Jets being removed from allJetsHist: " << signalRegionAll.Integral() << std::endl;
+  std::cout << "[globalProbabilities] N jets being removed from  tagJetHist: " << signalRegionTagged.Integral() << std::endl;
+  std::cout << "allJets before removal: " << allJetHist.Integral() << std::endl;
+  std::cout << "tagJets before removal: " << taggedJetHist.Integral() << std::endl;
+    
 
   // add the negative hists to remove 
   taggedJetHist.Add(&signalRegionTagged);

@@ -7,7 +7,7 @@
   "jetVariablesToSave" : ["caloJetPt","caloJetEta", "caloJetPhi", "jetMedianIPLogSig2D", 
   "caloJetAlphaMax", "sumTrackPt", "medianCosThetaDet2D", "jetNTracks", "evNum","eventCaloHT", 
   "genPU", "jetV0NJetClusterSize","jetNTracksPrompt","jetNTracksDisp","genWeightsRMS","genWeight",
-  "pvN","pvY","pvX","pvSumPtSq", "bsX","bsY", "bsLxy","bsWidthX","bsWidthY","bsPV2D","bsPV3D","run","lumi","event"],
+  "pvN","pvY","pvX","pvSumPtSq", "bsX","bsY", "bsLxy","bsWidthX","bsWidthY","bsPV2D","bsPV3D","run","lumi","event","genMom1CTau0","genMom2CTau0"],
   "eventVariablesToSave" : ["nCaloJets",  
   			 "passDisplaced500_40", "passDisplaced350_40", "passDisplaced400_40","passDisplaced250_40", 
 			 "passHT200", "passHT275", "passHT325", "passHT425", "passHT575","passPFHT800","passMu20"],

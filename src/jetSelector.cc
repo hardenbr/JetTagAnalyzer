@@ -144,6 +144,81 @@ std::vector<std::tuple<int,int,int> > jetSelector::buildOnlineTrackingFromJSON(T
   
   return resultVector;
 } // end method for online tracking PDF delivering
+
+bool jetSelector::doesEventPassPDGID(TTree * genTree, long int event, int pid1, int pid2) {
+  genTree->GetEntry(event);
+  
+  TLeaf *   pidLeaf = genTree->GetLeaf("genPartPID");
+  TLeaf *   momLeaf = genTree->GetLeaf("genMomPID");
+  int	    nPart   = pidLeaf->GetNdata();
+
+  // found the first particle index
+  bool	foundOne = false;
+  int	index1	 = -1; // index of the first particle found
+  int   mom1     = -9999; 
+  bool	foundTwo = false;
+
+  // look for the first particle if we find it save the index
+  for(int ii = 0; ii < nPart; ++ii) {
+    int pid = fabs(pidLeaf->GetValue(ii));
+    if (pid == pid1) {
+      foundOne = true;
+      index1 = ii;
+      mom1 = momLeaf->GetValue(ii);
+      continue;
+    }
+  }
+
+  // if we dont find one, we are done 
+  if(!foundOne) return false;
+
+  // find the second particle and make sure its not the same index
+  // also make sure it comes from separate mothers 
+  for(int ii = 0; ii < nPart; ++ii) {
+    float   pid	  = fabs(pidLeaf->GetValue(ii));
+    float   momID = momLeaf->GetValue(ii);
+    if (fabs(pid) == pid2 && (ii != index1) && (momID != mom1)) {
+      foundTwo = true;
+      continue;
+    }
+  }
+
+  // return finding both particles
+  return (foundOne && foundTwo);   
+  
+}
+
+// check only the trigger ors 
+bool  jetSelector::doesEventPassTriggers(TTree * tree, long int event) { 
+ if(debug > 5) std::cout << "[jetSelector]  getting tree event for event selection " << std::endl; 
+ tree->GetEntry(event);
+ for(int ii = 0; ii < int(eventSelection.size()); ++ii) {
+   // check if the variable is an OR (for triggers mostly) 
+   bool	isOR   = eventSelection[ii].get("isTriggerOR", false).asBool();
+
+   if(isOR) {
+     // get the list of variables, mins, and maxs for each
+     Json::Value    variables	 = eventSelection[ii]["variables"];
+     Json::Value    mins	 = eventSelection[ii]["mins"];
+     Json::Value    maxs	 = eventSelection[ii]["maxs"];
+     
+     // loop over each variable in the OR
+     for(int var = 0; var < int(variables.size()); ++var){
+       std::string triggerName = variables[var].asString();
+       
+       tree->GetEntry(event);	// call this AGAIN!
+       float	val  = tree->GetLeaf(triggerName.c_str())->GetValue(0);
+       float	min  = mins[var].asFloat();
+       float	max  = maxs[var].asFloat();      
+       bool	pass = val >= min && val <= max;       
+       // only one of the variables needs to pass in an OR
+
+       if(pass) return true;
+     }
+   }
+ }
+ return false;     
+}
   	     
 bool  jetSelector::doesEventPassSelection(TTree * tree, long int event) { 
 

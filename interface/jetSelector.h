@@ -28,6 +28,8 @@ class jetSelector {
   std::vector<bool> getJetTaggedVector(TTree * tree, int event, const bool & isSmear, const bool & smearUp );
   std::vector<float> getJetBinningVarVector(TTree * tree, int event);
   bool doesEventPassSelection(TTree * tree, long int event);
+  bool doesEventPassPDGID(TTree * genTree, long int event, int pid1, int pid2);
+  bool doesEventPassTriggers(TTree * tree, long int event);
   std::vector<std::tuple<int,int,int> > buildOnlineTrackingFromJSON(TTree * tree, 
 								    long int event, 
 								    int lifetime,
