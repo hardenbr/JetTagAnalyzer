@@ -14,7 +14,7 @@
   // write the selection as a single string for histogram building with tdraw 
   //
   "baselineJetSelectionCutString" : "(caloJetPt > 60 && abs(caloJetEta) < 2.0 && jetNTracks > 0)",
-  "jetSelectionCutString" : "(jetMedianIPLogSig2D > 3.454 && caloJetAlphaMax/sumTrackPt  < 0.05 && medianCosThetaDet2D > 0.025)" ,
+  "jetSelectionCutString" : "(jetMedianIPLogSig2D > 2.302 && caloJetAlphaMax/sumTrackPt  < 0.25 && medianCosThetaDet2D > 0.02)" ,
   "eventSelectionCutString" : "(nCaloJets > 1) && ((passDisplaced500_40 && eventCaloHT > 650) || (passDisplaced350_40 && eventCaloHT > 450))"  ,
   "triggerCutOnlyString" : "(passDisplaced500_40 || passDisplaced350_40)"  ,
   // 
@@ -47,7 +47,7 @@
    },
    {
       "variable": "jetMedianIPLogSig2D",
-      "min": 3.454,
+      "min": 2.302,
       "max": 9999,
       "smear_factor": 0.1   
    },
@@ -56,12 +56,12 @@
       "num": "caloJetAlphaMax",
       "den": "sumTrackPt",
       "min": -.01,
-      "max": 0.05,
+      "max": 0.25,
       "smear_factor": 0.0   
    },
    {
       "variable": "medianCosThetaDet2D",
-      "min": 0.025,
+      "min": 0.02,
       "max": 9999,
       "smear_factor": 0.1   
    },

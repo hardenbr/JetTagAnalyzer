@@ -23,7 +23,6 @@ jetSelector::jetSelector(const Json::Value & selectorJSON,
   baselineJetCutString = selectorJSON.get("baselineJetSelectionCutString","(1)").asString();
   triggerCutOnlyString = selectorJSON.get("triggerCutOnlyString","(1)").asString();
 
-
   if(runChop) {
     std::string probIndexPassString = "(evNum %" + std::to_string(nDivisions) + " == " + std::to_string(probIndex) + ")";
     eventCutString		    = "(" + eventCutString + ") &&" + probIndexPassString;
@@ -350,7 +349,6 @@ std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event, const
     for(int ii = 0; ii < int(jetSelection.size()); ++ii) {
 
       bool  isRatio = jetSelection[ii].get("isRatio",false).asBool();
-
       float val	    = -99999;
       
       if(isRatio) {

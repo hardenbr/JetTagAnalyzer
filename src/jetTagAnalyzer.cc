@@ -389,7 +389,7 @@ int main(int argc, char* argv[]) {
 
       float constant		= invc - invc_orig; 
       std::string weight_string = "(exp(-1 * (" + std::to_string(constant) + "* genMom1CTau0 + " 
-	+ std::to_string(constant) + "* genMom2CTau0)))";
+	+ std::to_string(constant) + "* genMom2CTau0))) * (genMom1CTau0 > 0 && genMom2CTau0 > 0)";
       // draw the hist
       std::cout << " reWeighting draw string: " << weight_string << std::endl;
       
@@ -399,7 +399,6 @@ int main(int argc, char* argv[]) {
       // the total sum of weights for normalization
       ctau0WeightSum	       = float(total_processed) / weightHist->Integral();            
     }
-
 
     // is globalProbabilities were not computed, produce them for each sample
     if(!probProvided) {
@@ -685,7 +684,6 @@ int main(int argc, char* argv[]) {
       bool  passValidationIndex	= (evNum % nDivisions == valiIndex) || !runChop;    // is the correct validation sample or no chop
       bool  passPID             = true;
 
-
       // speed up when we are running pulls
       // no need to calculate the number of tags if we are performing a chop with nDiv > 2
       // because we are not subtracting the signal region from the probabilities
@@ -716,30 +714,31 @@ int main(int argc, char* argv[]) {
 
       // Calculate the number of tagged jets
       if(debug > 2) std::cout << "Getting the nTagged Jets Vector.." << std::endl;
-      const std::vector<bool> taggedVector   = jetSel.getJetTaggedVector(tree, event, false, false);      
-      std::vector<bool> taggedVectorUp;// = taggedVector;
-      std::vector<bool> taggedVectorDn;// = taggedVector;
+      const std::vector<bool> & taggedVector = jetSel.getJetTaggedVector(tree, event, false, false);      
+      //      std::vector<bool> taggedVector;
+      const std::vector<bool> & taggedVectorUp = jetSel.getJetTaggedVector(tree, event, true, true);
+      const std::vector<bool> & taggedVectorDn = jetSel.getJetTaggedVector(tree, event, true, false);
       
-      // only run the smearing if we are running signal
-      if(isSig) {
-	std::vector<bool> taggedVectorUp_temp =  jetSel.getJetTaggedVector(tree, event, true, true);
-	std::vector<bool> taggedVectorDn_temp =  jetSel.getJetTaggedVector(tree, event, true, false);
-
-	for(int vvv = 0; vvv < int(taggedVector.size()); ++vvv) {
-	  bool valUp =  taggedVectorUp_temp[vvv];
-	  bool valDn =  taggedVectorDn_temp[vvv];
-	  taggedVectorUp.push_back(valUp);
-	  taggedVectorDn.push_back(valDn);
-	}
-
-      }
-      else {
-	for(int vvv = 0; vvv < int(taggedVector.size()); ++vvv) {
-	  bool val =  taggedVector[vvv];
-	  taggedVectorUp.push_back(val);
-	  taggedVectorDn.push_back(val);
-	}
-      }
+      // // only run the smearing if we are running signal
+      // if(isSig) {
+      // 	std::vector<bool> taggedVectorUp_temp =  jetSel.getJetTaggedVector(tree, event, true, true);
+      // 	std::vector<bool> taggedVectorDn_temp =  jetSel.getJetTaggedVector(tree, event, true, false);
+      // 	for(int vvv = 0; vvv < int(taggedVector_temp.size()); ++vvv) {	  
+      // 	  bool 	val   = taggedVector[vvv];
+      // 	  bool	valUp = taggedVectorUp_temp[vvv];
+      // 	  bool	valDn = taggedVectorDn_temp[vvv];
+      // 	  taggedVector.push_back(val);
+      // 	  taggedVectorUp.push_back(valUp);
+      // 	  taggedVectorDn.push_back(valDn);
+      // 	}
+      // }
+      // else {
+      // 	for(int vvv = 0; vvv < int(taggedVector.size()); ++vvv) {
+      // 	  bool val =  taggedVector_temp[vvv];
+      // 	  taggedVectorUp.push_back(val);
+      // 	  taggedVectorDn.push_back(val);
+      // 	}
+    
 
       // variable for tracking the number of tags in the event
       // track systematically 
