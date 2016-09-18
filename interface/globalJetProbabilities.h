@@ -119,5 +119,7 @@ class globalJetProbabilities {
   double xsec;
   const std::string divideString;
   const int debug;
-
+  double fakeRate;
+  int nJetsTotal;
+  int nJetsTaggedTotal;
 };

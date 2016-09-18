@@ -12,7 +12,7 @@
           "runSample": true,   
            "label": "DATA_DisplacedJet",
            "stack": "DATA",
-           "path":  "DisplacedJet_FULL.root",
+           "path":  "DisplacedJet_FULL_LOCAL.root",
            "isMC":  false,
            "isSig": false,
            "xsec": 1

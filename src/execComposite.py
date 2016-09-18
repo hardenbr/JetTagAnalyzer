@@ -17,9 +17,9 @@ print "usage: execComposite.py [nDivisions] [beginning probability index] [end p
 for ii in range(nDiv):
     if ii < minIndex or ii > maxIndex: continue
     for jj in range(nDiv):
-        #if only_probs and ((jj != ii+1) or (ii==nDiv-1)): continue
+        if only_probs and ((jj != ii+1) or (ii==nDiv-1)): continue
 
-        if ii == jj:
+        if ii != jj:
             runString = "./jetTagAnalyzer %i %i %i > /dev/null &" % (nDiv, ii ,jj)
             print runString
 
@@ -27,5 +27,5 @@ for ii in range(nDiv):
                 print "RUNNING IT.....", runString                
                 os.system(runString)
                 print "SLEEPING 45 Seconds....."
-                time.sleep(20)
+                time.sleep(2)
             

@@ -1052,9 +1052,8 @@ int main(int argc, char* argv[]) {
     TH1D * nTagHistTrue_noContam = (TH1D*)nTagHistPred.Clone((std::string(nTagHistTrue.GetName()) + "_noContam").c_str());    
 
     // make a copy of the histogram to only keep track of the histograms with contamation
-    TH1D * nTagHistTrue_contam = (TH1D*)nTagHistPred.Clone((std::string(nTagHistTrue.GetName()) + "_contam").c_str());    
-    
-    //nTagHistTrue_contam->SetTitle("Signal Inj.");
+    TH1D * nTagHistTrue_contam = (TH1D*)nTagHistPred.Clone((std::string(nTagHistTrue.GetName()) + "_contam").c_str());        
+    nTagHistTrue_contam->SetTitle("Signal Inj.");
     // clear out the information
     nTagHistTrue_contam->Reset();
 
@@ -1245,6 +1244,7 @@ int main(int argc, char* argv[]) {
     // flags realted to the type of file being analyzed
     resultJSON["label"]				      = label;
     resultJSON["includesContamination"]		      = runSignalContam ? "True" : "False";
+    resultJSON["removeSignalRegionFromProbs"]	      = removeSignalRegionFromProbs ? "True" : "False";
     resultJSON["isSignal"]			      = isSig ? "True" : "False";
     resultJSON["x_limit_label"]			      = x_limit_label;
     resultJSON["y_limit_label"]			      = y_limit_label;
@@ -1286,6 +1286,9 @@ int main(int argc, char* argv[]) {
     // keep some information about the probabilities JSON used for this
     resultJSON["probabilitiesProvided?"]	= probProvided ? "True" : "False";
     if(probProvided) resultJSON["providedPath"] = globalProb_json;
+    resultJSON["fakeRate"]                      = globalJetProbToApply->fakeRate;
+    resultJSON["fakeRate_nJetsTotal"]           = globalJetProbToApply->nJetsTotal;
+    resultJSON["fakeRate_nJetsTaggedTotal"]     = globalJetProbToApply->nJetsTaggedTotal;
     resultJSON["jetTagString"]			= globalJetProbToApply->jetCutString;
     resultJSON["eventCutString"]		= globalJetProbToApply->eventCutString;
     resultJSON["triggerCutOnlyString"]		= globalJetProbToApply->triggerCutOnlyString;

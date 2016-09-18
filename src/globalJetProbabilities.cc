@@ -84,6 +84,12 @@ globalJetProbabilities::globalJetProbabilities(const std::string& label_,
   ratioHistEffErrUp = ratioHistEffErrUp_temp;
   ratioHistEffErrDn = ratioHistEffErrDn_temp;
 
+
+  // calculate the fake rate
+  nJetsTotal	   = allJetHist.Integral();
+  nJetsTaggedTotal = taggedJetHist.Integral();
+  fakeRate	   = float(taggedJetHist.Integral()) / float(allJetHist.Integral());
+
   if(debug > 2) std::cout << "[globalJetProbabilities] Parsing cfg strings from config  " << std::endl;
   // set the string variables  from json
   binningVar	       = probabilities[catName].get("binningVar","1").asString();  
@@ -167,6 +173,11 @@ globalJetProbabilities::globalJetProbabilities(const std::string& label_,
   // get the histograms from the pipe 
   taggedJetHist = (TH1D)*(TH1D*)gDirectory->Get(taggedJetHistName.c_str());
   allJetHist	= (TH1D)*(TH1D*)gDirectory->Get(allJetHistName.c_str());
+
+  // calculate the flat fake rate
+  nJetsTotal	   = allJetHist.Integral();
+  nJetsTaggedTotal = taggedJetHist.Integral();
+  fakeRate	   = float(nJetsTaggedTotal) / float(nJetsTotal);
 
   // check they are filled
   taggedJetHist.Print();
@@ -268,6 +279,7 @@ Json::Value globalJetProbabilities::getProbabilitiesJSON() {
     // set info about how this was generated
     event["eventWeight"]		   = evWeight;
     event["xsec"]			   = xsec;
+    event[catName]["fakeRate"]	           = fakeRate;
     event[catName]["binningVar"]	   = binningVar;
     event[catName]["binning"]		   = binning;
     event[catName]["jetTagString"]	   = jetCutString;
