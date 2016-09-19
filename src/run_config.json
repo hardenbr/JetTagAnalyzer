@@ -1,6 +1,6 @@
 {
    "outputFileName":"DATA",
-   "outputDir": "/afs/cern.ch/work/h/hardenbr/2015/DIJET/JETPROB/SEPT17/DATA_MEDIUM_XVAL_NDIV25",
+   "outputDir": "/afs/cern.ch/work/h/hardenbr/2015/DIJET/JETPROB/SEPT19/DATA_LOOSE_EVENT_BETA_XVAL_25DIV",
    "debug":-1,
    "signalContam":{ "run" : false, 
                     "label":"XXTo4J_700_10mm",

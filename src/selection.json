@@ -11,28 +11,35 @@
   "eventVariablesToSave" : ["nCaloJets",  
   			 "passDisplaced500_40", "passDisplaced350_40", "passDisplaced400_40","passDisplaced250_40", 
 			 "passHT200", "passHT275", "passHT325", "passHT425", "passHT575","passPFHT800","passMu20"],
+  //
   // write the selection as a single string for histogram building with tdraw 
   //
   "baselineJetSelectionCutString" : "(caloJetPt > 60 && abs(caloJetEta) < 2.0 && jetNTracks > 0)",
-  "jetSelectionCutString" : "(jetMedianIPLogSig2D > 2.079441542 && caloJetAlphaMax/sumTrackPt  < 0.5 && medianCosThetaDet2D > 0.02)" ,
-  "eventSelectionCutString" : "(nCaloJets > 1) && ((passDisplaced500_40 && eventCaloHT > 650) || (passDisplaced350_40 && eventCaloHT > 450))"  ,
+  "jetSelectionCutString" : "(jetMedianIPLogSig2D > 1.0 && caloJetAlphaMax/sumTrackPt  < 0.5 && medianCosThetaDet2D > 0.02)" ,
+  "eventSelectionCutString" : "(nCaloJets > 1) && ((passDisplaced500_40 && eventCaloHT > 650) || (passDisplaced350_40 && eventCaloHT > 450))" ,
   "triggerCutOnlyString" : "(passDisplaced500_40 || passDisplaced350_40)"  ,
   // 
   // variables that will be cut on during the tagging
   //
+  "doEven": false,	
   "eventSelection": [
    {
       "variable": "nCaloJets",
       "min": 2,
       "max": 9999
    },
-   {
-       "isTriggerOR": true,
-       "variables": ["passDisplaced500_40","passDisplaced350_40"],
-       "mins": [1,   1],
-       "maxs": [9999,9999],
-       "htThresholds" :[650, 450]
-   }
+   // {
+   //    "variable": "passMu20",
+   //    "min": 1,
+   //    "max": 9999
+   // }
+    {
+        "isTriggerOR": true,
+        "variables": ["passDisplaced500_40","passDisplaced350_40"],
+        "mins": [1,   1],
+        "maxs": [9999,9999],
+        "htThresholds" :[650, 450]
+    }
    ],  
   "jetSelection": [
    {
@@ -47,23 +54,20 @@
    },
    {
       "variable": "jetMedianIPLogSig2D",
-      "min": 2.079441542,
-      "max": 9999,
-      "smear_factor": 0.1   
+      "min": 1.0,
+      "max": 9999
    },
    {
       "isRatio": true,
       "num": "caloJetAlphaMax",
       "den": "sumTrackPt",
       "min": -.01,
-      "max": 0.5,
-      "smear_factor": 0.0   
+      "max": 0.5   
    },
    {
       "variable": "medianCosThetaDet2D",
       "min": 0.02,
-      "max": 9999,
-      "smear_factor": 0.1   
+      "max": 9999   
    },
    {
       "variable": "jetNTracks",
@@ -71,7 +75,6 @@
       "max": 99999
    }
   ],
-
   // the two variables to be used to measure the fake rate and the binning for the
   // 2D fake rate histograms
   "fakeRateBinning": {

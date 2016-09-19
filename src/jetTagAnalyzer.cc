@@ -1178,7 +1178,9 @@ int main(int argc, char* argv[]) {
     Json::Value resultJSON;
     // build the array
     Json::Value nTagTrue(Json::arrayValue);
-    Json::Value nTagPred(Json::arrayValue);
+    Json::Value nTagPred(Json::arrayValue);    
+    Json::Value nTagPredCorr(Json::arrayValue);    
+    
     // statistical uncertainty in fake rate
     Json::Value nTagFakeRateUp(Json::arrayValue);
     Json::Value nTagFakeRateDn(Json::arrayValue);
@@ -1204,6 +1206,19 @@ int main(int argc, char* argv[]) {
       // true and predicted
       nTagTrue.append(nTagHistTrue.GetBinContent(ntag));
       nTagPred.append(nTagHistPred.GetBinContent(ntag));
+
+      // corrected prediction for not including signal region in probabilities
+      float beta = nTagHistPred[2] / nTagHistPred[1];
+      float correction = 1;
+      if (ntag == 1) {
+	correction  = 1 + 2*beta;
+      }
+      if (ntag == 2) {
+	correction  = 1 + 4*beta + 4*beta*beta;
+      }
+      nTagPredCorr.append(nTagHistPred.GetBinContent(ntag) * correction); 
+
+
       // fake rate 
       nTagFakeRateUp.append(nTagHistPredErrUp.GetBinContent(ntag));
       nTagFakeRateDn.append(nTagHistPredErrDn.GetBinContent(ntag));
@@ -1262,6 +1277,7 @@ int main(int argc, char* argv[]) {
     resultJSON["nTagTrue"]			      = nTagTrue;
     resultJSON["nTagTrueHLT"]			      = nTagTrueHLT;
     resultJSON["nTagPred"]			      = nTagPred;
+    resultJSON["nTagPredCorr"]			      = nTagPredCorr;
     resultJSON["pdfWeightTotal"]		      = pdfWeightTotal;
     resultJSON["pdfWeightTotalUp"]		      = pdfWeightTotalUp;
     resultJSON["pdfWeightTotalDn"]		      = pdfWeightTotalDn;
