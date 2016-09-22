@@ -108,7 +108,6 @@ int main(int argc, char* argv[]) {
 
   // check if global probabilities were provided
 
-
   bool	probProvided	 = (globalProb_json != "none");
 
   if(debug > -1){

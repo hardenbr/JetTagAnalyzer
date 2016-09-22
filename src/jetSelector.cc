@@ -1,5 +1,6 @@
 #include "jetSelector.h"
 #include <random>
+#include <math.h>
 
 // construct the selector 
 jetSelector::jetSelector(const Json::Value & selectorJSON, 
@@ -324,7 +325,7 @@ std::vector<float> jetSelector::getJetBinningVarVector(TTree * tree, int event) 
     if(debug > 6) std::cout << "[jetSelector ] New Jet " << jet << "...egin looping selection variables" << std::endl;  
     
     TLeaf * binningVarLeaf = tree->GetLeaf(binningVar.c_str());
-    float binningVarVal = binningVarLeaf->GetValue(jet);
+    float binningVarVal = binningVarLeaf->GetValue(0);
     binningVarVec.push_back(binningVarVal);    
   } // loop over the number of jets
 
@@ -382,10 +383,19 @@ std::vector<bool> jetSelector::getJetTaggedVector(TTree * tree, int event, const
 
       // if we are smearing the values
       if(isSmear) {
+	std::string var	    = jetSelection[ii].get("variable","ERROR").asString();
 	float	smear_factor = jetSelection[ii].get("smear_factor", 0).asFloat();	  
 	float	sign	     = smearUp ? 1 : -1;
-	//std::cout << "[jetSelector ] smearing the value:   " << val << " by " << smear_factor << std::endl;        
-	val		     = val * (1 + (sign * smear_factor));
+	//std::cout << "[jetSelector ] smearing the value:   " << val << " by " << smear_factor << std::endl;     
+	float temp_val = val; 
+	if(var == "jetMedianIPLogSig2D") {
+	  temp_val = pow(2.7182818285, val);
+	  temp_val = temp_val * (1 + (sign * smear_factor));
+	  val = log(temp_val);
+	}
+	else{
+	  val = val * (1 + (sign * smear_factor));
+	}
         //std::cout << "[jetSelector ] new value:   " << val << std::endl;        
       }
 

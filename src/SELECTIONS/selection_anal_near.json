@@ -63,7 +63,7 @@
       "variable": "medianCosThetaDet2D",
       "min": 0.025,
       "max": 9999,
-      "smear_factor": 0.1   
+      "smear_factor": 0.03   
    },
    {
       "variable": "jetNTracks",

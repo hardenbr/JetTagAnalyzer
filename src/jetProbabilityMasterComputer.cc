@@ -28,7 +28,7 @@ const std::vector<std::pair<double, double>> jetProbabilityMasterComputer::getNJ
   // leaves of the variables
   TLeaf *	binLeaf	= jetTree->GetLeaf(binVar.c_str());
   TLeaf *	catLeaf	= jetTree->GetLeaf(catVar.c_str());
-  int		nJets   = binLeaf->GetNdata();
+  int		nJets   = catLeaf->GetNdata();
 
   // setup for parsing from the branch
   std::vector<double> binValues;
@@ -84,15 +84,17 @@ const std::vector<double> jetProbabilityMasterComputer::getJetProbabilityVector(
   std::string	catVar	= jetProb->getCategoryVarName(); 
   TLeaf *	binLeaf	= jetTree->GetLeaf(binVar.c_str());
   TLeaf *	catLeaf	= jetTree->GetLeaf(catVar.c_str());
-  int		nJets   = binLeaf->GetNdata();
+  int		nJets   = catLeaf->GetNdata();
 
 
   // get the individual jet probabilities
   for(int ii = 0; ii < nJets; ++ii) {
     double binVal = binLeaf->GetValue(ii);
+    if(debug>3) std::cout << "BINVAL " << binVar << " " << binVal << std::endl;
     double catVal = catLeaf->GetValue(ii);
 
     double prob = jetProb->getJetFakeProbability(binVal, catVal);
+    if(debug>3) std::cout << "[masterComp] ASSOC PROB " << prob << std::endl;
     jetProbabilityVector.push_back(prob);
   }
 
@@ -114,7 +116,7 @@ const std::vector<double> jetProbabilityMasterComputer::getNJetTaggedVector(cons
   if(debug > 2) std:: cout << "[JetProbMaster] Getting leaf information for binVar and catVar: " << binVar << " " << catVar <<  std::endl;
   TLeaf *	binLeaf	= jetTree->GetLeaf(binVar.c_str());
   TLeaf *	catLeaf	= jetTree->GetLeaf(catVar.c_str());
-  int		nJets   = binLeaf->GetNdata();
+  int		nJets   = catLeaf->GetNdata();
 
   // check for  outlier njet scenarios that will be computationally poor 
   if (nJets > 100) {
@@ -146,6 +148,14 @@ const std::vector<double> jetProbabilityMasterComputer::getNJetTaggedVector(cons
     
     double prob = getNJetProbability(binValues, catValues, ii, nJets);
     if(debug > 4) std:: cout << "[JetProbMaster] Adding Probability:" << prob << " to vector " << std::endl;
+    if (prob > 1) {
+      std::cout << "[JetProbMaster] probability greater than 1 " << std::endl;
+      std::cout << "[JetProbMaster] binvals ";
+      for(int jj = 0; jj < nJets; ++jj) {
+	std::cout << binValues[jj] << " ";
+      }
+      std::cout << std::endl;
+    }
     nTaggedProbVector.push_back(prob);
   }
 
@@ -198,7 +208,7 @@ const std::vector<std::pair<double,double>> jetProbabilityMasterComputer::getNTr
   // leaves of the variables
   TLeaf *	binLeaf	= jetTree->GetLeaf(binVar.c_str());
   TLeaf *	catLeaf	= jetTree->GetLeaf(catVar.c_str());
-  int		nJets   = binLeaf->GetNdata();
+  int		nJets   = catLeaf->GetNdata();
 
   // setup for parsing from the branch
   std::vector<double> binValues;
@@ -306,7 +316,7 @@ const std::vector<std::pair<double,double>> jetProbabilityMasterComputer::getNTr
       subTerm *= qTerm;
       if(debug > 3)  std::cout << "[JetProbabilityMaster] subTerm final =" << subTerm << std::endl;
       // make sure the derivative binVal make sense (less than 100 tracks)
-      assert(binValDerivative < 200);
+      //assert(binValDerivative < 200);
       derivativeTerm += subTerm;
       if(debug > 3)  std::cout << "[JetProbabilityMaster] derivative Term  =" << derivativeTerm << std::endl;
     }// end loop over configurations 

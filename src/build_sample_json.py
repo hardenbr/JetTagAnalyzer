@@ -2,7 +2,6 @@ import json, sys
 
 if len(sys.argv) != 2:
     print "build_sample_json.py [list_of_signal files]"
-    
 
 file = open(sys.argv[1], "r")
 lines = map(lambda x: x.rstrip("\n"), file.readlines()) 
