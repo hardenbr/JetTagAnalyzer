@@ -151,6 +151,7 @@ bool jetSelector::doesEventPassPDGID(TTree * genTree, long int event, int pid1, 
   TLeaf *   pidLeaf = genTree->GetLeaf("genPartPID");
   TLeaf *   momLeaf = genTree->GetLeaf("genMomPID");
   int	    nPart   = pidLeaf->GetNdata();
+  bool	    doVeto  = pid1  < 0 && pid2 < 0;
 
   // found the first particle index
   bool	foundOne = false;
@@ -161,30 +162,32 @@ bool jetSelector::doesEventPassPDGID(TTree * genTree, long int event, int pid1, 
   // look for the first particle if we find it save the index
   for(int ii = 0; ii < nPart; ++ii) {
     int pid = fabs(pidLeaf->GetValue(ii));
-    if (pid == pid1) {
+    if (fabs(pid) == fabs(pid1)) {
       foundOne = true;
       index1 = ii;
       mom1 = momLeaf->GetValue(ii);
       continue;
-    }
+    }    
   }
-
-  // if we dont find one, we are done 
-  if(!foundOne) return false;
 
   // find the second particle and make sure its not the same index
   // also make sure it comes from separate mothers 
   for(int ii = 0; ii < nPart; ++ii) {
     float   pid	  = fabs(pidLeaf->GetValue(ii));
     float   momID = momLeaf->GetValue(ii);
-    if (fabs(pid) == pid2 && (ii != index1) && (momID != mom1)) {
+    if (fabs(pid) == fabs(pid2) && (ii != index1) && (momID != mom1)) {
       foundTwo = true;
       continue;
     }
   }
 
   // return finding both particles
-  return (foundOne && foundTwo);   
+  if(doVeto) {
+    return !foundTwo && !foundOne; 
+  }
+  else {
+    return (foundOne && foundTwo);   
+  }
   
 }
 

@@ -135,15 +135,15 @@ class interpretation:
             #the second entry in the pair is the quantity were drawing
 
             for pair in sliceCont.val[key]: 
-                val_change = 0 if pair[1] == 0 else math.log10((pair[1]*100))
+                val_change = 0 if pair[1] == 0 else (pair[1]*100)#math.log10((pair[1]*100))
                 val_change = 0 if val_change < 0 else val_change
                 val_list.append(val_change)
             for pair in sliceCont.valUp[key]: 
-                val_change = 0 if pair[1] == 0 else math.log10((pair[1]*100))
+                val_change = 0 if pair[1] == 0 else pair[1]*100  #math.log10((pair[1]*100))
                 val_change = 0 if val_change < 0 else val_change
                 valUp_list.append(val_change)
             for pair in sliceCont.valDn[key]:
-                val_change = 0 if pair[1] == 0 else (-1 * math.log10((pair[1]*100)))
+                val_change = 0 if pair[1] == 0 else (-1 * (pair[1]*100)) #math.log10((pair[1]*100)))
                 val_change = 0 if val_change > 0 else val_change
                 valDn_list.append(val_change)
 

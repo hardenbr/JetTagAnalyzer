@@ -159,6 +159,7 @@ int main(int argc, char* argv[]) {
   
   //limit on the number of ntags to compute
   int		    maxJetTags			= run_config_root.get("maxJetTags",3).asInt(); 
+  bool              threeTagMax                 = run_config_root.get("threeTagMax",false).asBool(); 
   bool		    runSignalContam		= run_config_root["signalContam"].get("run",false).asBool(); 
   bool		    writeTree			= run_config_root.get("writeTree",false).asBool(); 
   bool		    keepAllEvents		= run_config_root.get("keepAllEvents",false).asBool(); 
@@ -347,6 +348,7 @@ int main(int argc, char* argv[]) {
     if(debug > 3) std::cout << "Getting the tree of the file....." << std::endl;
     TTree * tree       = (TTree*)(thisFile.Get(treeName.c_str()));    
     TTree * caloHTTree = (TTree*)(thisFile.Get(treeName.c_str()));    
+    //TTree * genTree = (TTree*)(thisFile.Get(treeName.c_str()));    
     TTree * genTree    = (TTree*)thisFile.Get("genp");    
 				  
     std::string contamPath;
@@ -676,9 +678,11 @@ int main(int argc, char* argv[]) {
       if(event < beginEvent) continue; 
       tree->GetEntry(event);
       genTree->GetEntry(event);
+
       if(event % 20000 == 0) std::cout << "Processing Event # --- "  << event << std::endl;
       if(event % 1000 == 0 && isSig) std::cout << "Processing Signal Event # --- "  << event << std::endl;
       // check the index matches for the validation sample and that the kinematic / trigger requirements are satisfied
+      //int   evNum		= tree->GetLeaf("evNum")->GetValue(0);
       int   evNum		= tree->GetLeaf("evNum")->GetValue(0);
       bool  passValidationIndex	= (evNum % nDivisions == valiIndex) || !runChop;    // is the correct validation sample or no chop
       bool  passPID             = true;
@@ -688,17 +692,25 @@ int main(int argc, char* argv[]) {
       // because we are not subtracting the signal region from the probabilities
       if(nDivisions > 2 && runChop && !passValidationIndex) continue;
 
+      if(debug > 3) std::cout << "passed event number selection "  << std::endl;
       // if we are running the falvor analysis check for the two particles
       if(runFlavorAnal) passPID  = jetSel.doesEventPassPDGID(genTree, event, pid1, pid2);     
 
       // only analyze events with the correct PID content
       if(!passPID) continue; 
       nPassPID++;
-      // store the pids for the babies
-      for(int gg = 0; gg <= 4; ++gg) {
-	TLeaf * pidLeaf = genTree->GetLeaf("genPartPID");
-	pid[gg] = pidLeaf->GetValue(gg);
+
+
+      if(debug > 3) std::cout << "retrieving particle IDs "  << std::endl;
+      if(isMC) {
+	// store the pids for the babies
+	for(int gg = 0; gg <= 4; ++gg) {
+	  
+	  TLeaf * pidLeaf = genTree->GetLeaf("genPartPID");
+	  pid[gg] = pidLeaf->GetValue(gg);
+	}
       }
+      if(debug > 3) std::cout << "retrieved particle IDs "  << std::endl;
 
       float ctau0Gen1 = -1;
       float ctau0Gen2 = -1;
@@ -706,6 +718,8 @@ int main(int argc, char* argv[]) {
 	ctau0Gen1 = tree->GetLeaf("genMom1CTau0")->GetValue(0);
 	ctau0Gen2 = tree->GetLeaf("genMom2CTau0")->GetValue(0);
       }
+
+      if(debug > 3) std::cout << "parsed gen ctau0 "  << std::endl;
 
       // derive the weight for the event including normalization
       float constant		= invc - invc_orig;
@@ -759,6 +773,12 @@ int main(int argc, char* argv[]) {
 	isTaggedDn[jj] = taggedVectorDn[jj] ? 1 : 0;
       }
 
+      // if we are only doing a two binned limit turn 3+ tags into one bin
+      if(threeTagMax) {
+	nTagged = nTagged >= 3 ? 3 : nTagged;
+	nTaggedUp = nTaggedUp >= 3 ? 3 : nTaggedUp;
+	nTaggedDn = nTaggedDn >= 3 ? 3 : nTaggedDn;
+      }
 
       // is in the signal region for <= 2 divisions
       bool  passSignalTagRegion		= (nTagged >= 2 && nDivisions <= 2);  

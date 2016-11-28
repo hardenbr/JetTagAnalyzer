@@ -21,66 +21,66 @@ parser.add_option( "--ylabel", dest="ylabel",
                   help="label for the y axis of the scan",default="log_{10}(HLT % Error)",
                   action="store",type="string")
 
-
 parser.add_option( "-f", dest="path",
                   help="path to the combine root file",default="nTagHLTSYSRel_graphs.root",
                   action="store",type="string")
 
-
 parser.add_option( "--ymin", dest="ymin",
-                  help="y axis min ",default=-2,
+                  help="y axis min ",default=-100,
                   action="store",type="float")
 
 parser.add_option( "--ymax", dest="ymax",
-                  help="y axis max ",default=2,
+                  help="y axis max ",default=100,
                   action="store",type="float")
 
 
+parser.add_option( "--dsusy", dest="dsusy",
+                  help="y axis max ",default=False,
+                  action="store_true",)
 
 
 rt.gStyle.SetOptStat(0)
 rt.gStyle.SetOptTitle(0)
-
+(options, args) = parser.parse_args()
 color_scheme = {}
-
-# XX4J COLOR SCHEME
-# mass 
-color_scheme["x_50"]   = rt.kBlack
-color_scheme["x_100"]  = rt.kBlue+2
-color_scheme["x_200"]  = rt.kBlue
-color_scheme["x_300"]  = rt.kBlue-3
-color_scheme["x_500"]  = rt.kBlue-5
-color_scheme["x_700"]  = rt.kBlue-9
-color_scheme["x_1000"] = rt.kViolet-9
-color_scheme["x_1500"] = rt.kViolet-5
-color_scheme["x_2000"] = rt.kViolet
-color_scheme["x_3000"] = rt.kViolet+2
+if not options.dsusy:
+    # XX4J COLOR SCHEME
+    # mass 
+    color_scheme["x_50"]   = rt.kBlack
+    color_scheme["x_100"]  = rt.kBlue+2
+    color_scheme["x_200"]  = rt.kBlue
+    color_scheme["x_300"]  = rt.kBlue-3
+    color_scheme["x_500"]  = rt.kBlue-5
+    color_scheme["x_700"]  = rt.kBlue-9
+    color_scheme["x_1000"] = rt.kViolet-9
+    color_scheme["x_1500"] = rt.kViolet-5
+    color_scheme["x_2000"] = rt.kViolet
+    color_scheme["x_3000"] = rt.kViolet+2
 # ctau
-color_scheme["y_1"]    = rt.kBlue+2
-color_scheme["y_3"]    = rt.kBlue
-color_scheme["y_10"]   = rt.kBlue-5
-color_scheme["y_30"]   = rt.kBlue-9
-color_scheme["y_100"]  = rt.kRed-9
-color_scheme["y_300"]  = rt.kRed-5
-color_scheme["y_1000"] = rt.kRed
-color_scheme["y_2000"] = rt.kRed+2
-color_scheme["label"] = "X^{0} Mass [GeV]" 
-color_scheme["mass_label"]  = "m_{X^{0}}" 
-
-# # DSUSY COLOR SCHEME
-# # mass 
-# color_scheme["x_200"]  = rt.kBlue
-# color_scheme["x_300"]  = rt.kBlue-9
-# color_scheme["x_500"]  = rt.kViolet-9
-# color_scheme["x_800"]  = rt.kViolet-3
-# color_scheme["x_1000"] = rt.kViolet
-# # ctau
-# color_scheme["y_1"]    = rt.kBlue
-# color_scheme["y_10"]   = rt.kBlue-9
-# color_scheme["y_100"]  = rt.kRed-9
-# color_scheme["y_1000"] = rt.kRed
-# color_scheme["label"]  = "#tilde{t} Mass [GeV]" 
-# color_scheme["mass_label"]  = "m_{#tilde{t}}" 
+    color_scheme["y_1"]    = rt.kBlue+2
+    color_scheme["y_3"]    = rt.kBlue
+    color_scheme["y_10"]   = rt.kBlue-5
+    color_scheme["y_30"]   = rt.kBlue-9
+    color_scheme["y_100"]  = rt.kRed-9
+    color_scheme["y_300"]  = rt.kRed-5
+    color_scheme["y_1000"] = rt.kRed
+    color_scheme["y_2000"] = rt.kRed+2
+    color_scheme["label"] = "X^{0} Mass [GeV]" 
+    color_scheme["mass_label"]  = "m_{X^{0}}" 
+else: 
+    # DSUSY COLOR SCHEME
+    color_scheme["x_200"]   = rt.kBlack
+    color_scheme["x_300"]  = rt.kBlue+2
+    color_scheme["x_400"]  = rt.kBlue
+    color_scheme["x_500"]  = rt.kBlue-3
+    color_scheme["x_600"]  = rt.kBlue-5
+    color_scheme["x_700"]  = rt.kBlue-9
+    color_scheme["x_800"] = rt.kViolet-9
+    color_scheme["x_900"] = rt.kViolet-5
+    color_scheme["x_1000"] = rt.kViolet
+    color_scheme["x_1200"] = rt.kViolet+2
+    color_scheme["label"]  = "#tilde{t} Mass [GeV]" 
+    color_scheme["mass_label"]  = "m_{#tilde{t}}" 
 
 # #NEUTRALINO COLOR SCHEME
 # color_scheme["x_400"]  = rt.kBlue
@@ -224,13 +224,15 @@ if __name__ == '__main__':
         draw_first_x = x_graphs_to_drawDn[first_key]
 
     # draw_firstDn = x_graphs_to_drawDn[first_key]
-    draw_first_x.SetMinimum(-2)
-    draw_first_x.SetMaximum(2)
+    draw_first_x.SetMinimum(-50)
+    draw_first_x.SetMaximum(50)
     draw_first_x.GetXaxis().SetRangeUser(1,2000)
-    draw_first_x.GetYaxis().SetRangeUser(-2,2)
+    draw_first_x.GetYaxis().SetRangeUser(-50,50)
 
 
-    draw_first_x.Draw("A"+options.draw_options)
+    #draw_first_x.Draw("A"+options.draw_options)
+    draw_first_x.Draw("AL")                      
+    #draw_first_x.Draw("A")
 
     # draw_first_x.SetMinimum(-2)
     # draw_first_x.SetMaximum(2)
@@ -240,7 +242,7 @@ if __name__ == '__main__':
 
     draw_first_x.GetXaxis().SetTitle("c#tau_{0} [%s]" % options.ctau_label)
     draw_first_x.GetYaxis().SetTitle(options.ylabel)
-    for key in x_graphs_to_draw.keys(): x_graphs_to_draw[key].Draw("same"+options.draw_options)        
+    #for key in x_graphs_to_draw.keys(): x_graphs_to_draw[key].Draw("same"+options.draw_options)        
     for key in x_graphs_to_drawUp.keys(): x_graphs_to_drawUp[key].Draw("same"+options.draw_options)        
     for key in x_graphs_to_drawDn.keys(): x_graphs_to_drawDn[key].Draw("same"+options.draw_options)        
 
@@ -291,7 +293,7 @@ if __name__ == '__main__':
     draw_first_y.SetMinimum(-2)
     draw_first_y.SetMaximum(2)
     draw_first_y.GetXaxis().SetRangeUser(1,1E6)
-    draw_first_y.GetYaxis().SetRangeUser(-2,2)
+    draw_first_y.GetYaxis().SetRangeUser(-50,50)
 
     draw_first_y.GetXaxis().SetTitle(color_scheme["label"])
     draw_first_y.GetYaxis().SetTitle(options.ylabel)
@@ -328,25 +330,26 @@ if __name__ == '__main__':
     CMS_lumi.CMS_lumi(y_canvas, 4, 0)
 
     x_canvas.cd()
-    draw_first_x.SetMinimum(-2)
-    draw_first_x.SetMaximum(2)
+    draw_first_x.SetMinimum(-50)
+    draw_first_x.SetMaximum(50)
     draw_first_x.GetXaxis().SetRangeUser(1,2000)
     draw_first_x.GetYaxis().SetRangeUser(options.ymin, options.ymax)
     x_canvas.Update()
     x_canvas.Modified()
 
     zero_line_x = rt.TLine(1, 0, 2000, 0)
-    zero_line_x.SetLineWidth(6)
-    #zero_line.SetLineColor(rt.kBlack)
+    zero_line_x.SetLineWidth(7)
+    zero_line_x.SetLineColor(rt.kBlack)
     zero_line_x.Draw("same")
 
 
     y_canvas.cd()
-    draw_first_y.SetMinimum(-2)
-    draw_first_y.SetMaximum(2)
+    draw_first_y.SetMinimum(-50)
+    draw_first_y.SetMaximum(50)
     draw_first_y.GetXaxis().SetRangeUser(50,3000)
 #    draw_first_y.GetYaxis().SetRangeUser(options.ymin, options.ymax)
-    draw_first_y.GetYaxis().SetRangeUser(-2.5, 2.5)
+#    draw_first_y.GetYaxis().SetRangeUser(-2.5, 2.5)
+    draw_first_y.GetYaxis().SetRangeUser(-50, 50)
 
     zero_line_y = rt.TLine(50, 0, 3000, 0)
     zero_line_y.SetLineWidth(6)
@@ -364,5 +367,5 @@ if __name__ == '__main__':
 
     sig_name = options.sig_list.split(".list")[0] + "_" + options.path.split(".root")[0]
     quantity_type = options.path.split(".root")[0]
-    x_canvas.SaveAs("%s_%sxslice.pdf" % (sig_name, quantity_type))
-    y_canvas.SaveAs("%s_%s_yslice.pdf" % (sig_name, quantity_type))
+    # x_canvas.SaveAs("%s_%sxslice.pdf" % (sig_name, quantity_type))
+    # y_canvas.SaveAs("%s_%s_yslice.pdf" % (sig_name, quantity_type))
